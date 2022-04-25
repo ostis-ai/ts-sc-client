@@ -1,7 +1,8 @@
 node_modules/
-test/
+tests/
 src/
 
 .gitignore
 tsconfig.json
+jest.config.js
 webpack.*
