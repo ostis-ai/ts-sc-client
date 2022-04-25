@@ -2,29 +2,14 @@ import { InvalidValue } from "./errors";
 import { ScAddr } from "./ScAddr";
 import { ScConstruction } from "./ScConstruction";
 import { ScConstructionCommand } from "./ScConstructionCommand";
-import { ScEvent } from "./ScEvent";
+import { ScEvent, ScEventCallbackFunc } from "./scEvent";
 import { ScEventParams } from "./ScEventParams";
 import { ScLinkContent, ScLinkContentType } from "./ScLinkContent";
-import { ScTemplate } from "./ScTemplate";
+import { ScTemplate, ScTemplateTriple, ScTemplateValue } from "./ScTemplate";
 import { ScTemplateSearchResult, ScTemplateResult } from "./ScTemplateResult";
 import { ScType } from "./scType";
 
-export type ResolveIdtfMap = { [id: string]: ScAddr };
-
-type CallbackFunc = () => void;
-type ScEventCallbackFunc = (
-  elAddr: ScAddr,
-  edge: ScAddr,
-  other: ScAddr
-) => void;
-
-export type ScTemplateGenParams = { [id: string]: ScAddr };
-export interface ScIdtfResolveParams {
-  idtf: string;
-  type: ScType;
-}
-
-type ScTemplateParamValue = string | ScAddr | ScType;
+type WSCallback = (data: Response) => void;
 
 interface Response {
   id: number;
@@ -33,54 +18,70 @@ interface Response {
   payload: any;
 }
 
-interface ScTemplateValue {
-  value: ScTemplateParamValue;
-  alias: string;
+interface KeynodeParam<ParamId extends string = string> {
+  id: ParamId;
+  type: ScType;
 }
 
-interface ScTemplateTriple {
-  source: ScTemplateValue;
-  edge: ScTemplateValue;
-  target: ScTemplateValue;
-}
+type ResolveIdtfMap = { [id: string]: ScAddr };
 
-type WSCallback = (data: Response) => void;
+type SocketEvent = "close" | "error" | "open";
+
+export type ScTemplateGenParams = { [id: string]: ScAddr };
+
+export type TAction =
+  | "create_elements"
+  | "check_elements"
+  | "delete_elements"
+  | "search_template"
+  | "generate_template"
+  | "events"
+  | "keynodes"
+  | "content";
 
 export class ScClient {
   private _eventID: number;
   private _url: string;
+  private _messageQueue: Array<() => void>;
   private _socket: WebSocket;
-  private _callbacks: Map<number, WSCallback>;
-  private _events: Map<number, ScEvent>;
+  private _callbacks: Record<number, WSCallback>;
+  private _events: Record<number, ScEvent>;
 
-  constructor(
-    wsURL,
-    onConnect: CallbackFunc,
-    onDisconnect: CallbackFunc,
-    onError: CallbackFunc
-  ) {
-    this._url = wsURL;
+  constructor(url: string) {
+    this._url = url;
     this._socket = new WebSocket(this._url);
-    this._socket.onopen = onConnect;
-    this._socket.onclose = onDisconnect;
-    this._socket.onerror = onError;
-    this._socket.onmessage = this.onMessage.bind(this);
+    this._socket.onmessage = this.onMessage;
+    this._socket.onopen = this.sendMessagesFromQueue;
 
-    this._callbacks = new Map<number, WSCallback>();
-    this._events = new Map<number, ScEvent>();
+    this._messageQueue = [];
+    this._callbacks = {};
+    this._events = {};
     this._eventID = 1;
   }
 
-  private onMessage(evt: MessageEvent): void {
-    const data: Response = JSON.parse(evt.data);
-    const cmdID: number = data.id;
-    const callback: WSCallback = this._callbacks[cmdID];
+  public addEventListener(evt: SocketEvent, cb: () => void) {
+    this._socket.addEventListener(evt, cb);
+  }
+
+  public removeEventListener(evt: SocketEvent, cb: () => void) {
+    this._socket.removeEventListener(evt, cb);
+  }
+
+  private sendMessagesFromQueue = () => {
+    this._messageQueue.forEach((func) => func());
+    this._messageQueue = [];
+  };
+
+  private onMessage = (evt: MessageEvent) => {
+    const data = JSON.parse(evt.data);
+    const cmdID = data.id;
+    const callback = this._callbacks[cmdID];
 
     if (data.event) {
-      const evt: ScEvent = this._events[cmdID];
+      const evt = this._events[cmdID];
 
       if (evt) {
-        evt.callback(
+        evt.callback?.(
           new ScAddr(data.payload[0]),
           new ScAddr(data.payload[1]),
           new ScAddr(data.payload[2])
@@ -97,50 +98,49 @@ export class ScClient {
 
       callback(data as Response);
     }
-  }
+  };
 
   private sendMessage(
-    type: string,
-    payload: object,
+    type: TAction,
+    payload: Record<string, any>,
     callback: WSCallback
-  ): void {
+  ) {
     this._eventID++;
+
     if (this._callbacks[this._eventID]) {
       throw "Invalid state of messages queue";
     }
 
     this._callbacks[this._eventID] = callback;
-    this._socket.send(
-      JSON.stringify({
-        id: this._eventID,
-        type: type,
-        payload: payload,
-      })
-    );
+    const data = JSON.stringify({
+      id: this._eventID,
+      type,
+      payload,
+    });
+
+    const sendData = () => this._socket.send(data);
+
+    if (this._socket.readyState !== this._socket.OPEN) {
+      return this._messageQueue.push(sendData);
+    }
+    sendData();
   }
 
-  public async CheckElements(addrs: ScAddr[]): Promise<ScType[]> {
-    const self = this;
-    return new Promise<ScType[]>(function (resolve) {
-      if (addrs.length == 0) {
-        resolve([]);
-      } else {
-        const payload: number[] = addrs.map((a: ScAddr) => {
-          return a.value;
-        });
-        self.sendMessage("check_elements", payload, (data: Response) => {
-          const result: ScType[] = data.payload.map((t: number): ScType => {
-            return new ScType(t);
-          });
-          resolve(result);
-        });
-      }
+  public async checkElements(addrs: ScAddr[]): Promise<ScType[]> {
+    return new Promise<ScType[]>((resolve) => {
+      if (!addrs.length) return resolve([]);
+
+      const payload = addrs.map(({ value }: ScAddr) => value);
+
+      this.sendMessage("check_elements", payload, (data: Response) => {
+        const result = data.payload.map((scType: number) => new ScType(scType));
+        resolve(result);
+      });
     });
   }
 
-  public async CreateElements(constr: ScConstruction): Promise<ScAddr[]> {
-    const self = this;
-    return new Promise<ScAddr[]>(function (resolve) {
+  public async createElements(constr: ScConstruction) {
+    return new Promise<ScAddr[]>((resolve) => {
       let payload: any[] = constr.commands.map((cmd: ScConstructionCommand) => {
         if (cmd.type.isNode()) {
           return {
@@ -184,7 +184,7 @@ export class ScClient {
         InvalidValue("Unknown type");
       });
 
-      self.sendMessage("create_elements", payload, (data: Response) => {
+      this.sendMessage("create_elements", payload, (data: Response) => {
         resolve(
           data.payload.map((a: number): ScAddr => {
             return new ScAddr(a);
@@ -194,38 +194,35 @@ export class ScClient {
     });
   }
 
-  public async DeleteElements(addrs: ScAddr[]): Promise<boolean> {
-    const self = this;
-    return new Promise<boolean>(function (resolve) {
+  public async deleteElements(addrs: ScAddr[]) {
+    return new Promise<boolean>((resolve) => {
       const payload = addrs.map((a: ScAddr) => {
         return a.value;
       });
-      self.sendMessage("delete_elements", payload, (data: Response) => {
+      this.sendMessage("delete_elements", payload, (data: Response) => {
         resolve(data.status);
       });
     });
   }
 
-  public async SetLinkContents(contents: ScLinkContent[]): Promise<boolean[]> {
-    const self = this;
-    return new Promise<boolean[]>(function (resolve) {
+  public async setLinkContents(contents: ScLinkContent[]) {
+    return new Promise<boolean[]>((resolve) => {
       const payload = contents.map((c: ScLinkContent) => {
         return {
           command: "set",
           type: c.TypeToStr(),
           data: c.data,
-          addr: c.addr.value,
+          addr: c.addr?.value,
         };
       });
 
-      self.sendMessage("content", payload, (data: Response) => {
+      this.sendMessage("content", payload, (data: Response) => {
         resolve(data.payload);
       });
     });
   }
 
-  public async GetLinkContents(addrs: ScAddr[]): Promise<ScLinkContent[]> {
-    const self = this;
+  public async getLinkContents(addrs: ScAddr[]) {
     return new Promise<ScLinkContent[]>((resolve) => {
       const payload = addrs.map((a: ScAddr) => {
         return {
@@ -234,8 +231,8 @@ export class ScClient {
         };
       });
 
-      self.sendMessage("content", payload, (data: Response) => {
-        const result: ScLinkContent[] = data.payload.map((o: object) => {
+      this.sendMessage("content", payload, (data: Response) => {
+        const result: ScLinkContent[] = data.payload.map((o: any) => {
           const t: string = o["type"];
           let ctype = ScLinkContentType.Binary;
           if (t == "string") {
@@ -254,41 +251,38 @@ export class ScClient {
     });
   }
 
-  public async ResolveKeynodes(
-    params: ScIdtfResolveParams[]
-  ): Promise<ResolveIdtfMap> {
-    const self = this;
-    return new Promise<ResolveIdtfMap>(function (resolve) {
-      const payload = params.map((p: ScIdtfResolveParams) => {
-        if (p.type.isValid()) {
+  public async resolveKeynodes<ParamId extends string>(
+    params: ReadonlyArray<KeynodeParam<ParamId>>
+  ) {
+    return new Promise<Record<ParamId, ScAddr>>((resolve) => {
+      const payload = params.map(({ id, type }) => {
+        if (type.isValid()) {
           return {
             command: "resolve",
-            idtf: p.idtf,
-            elType: p.type.value,
+            idtf: id,
+            elType: type.value,
           };
         }
 
         return {
           command: "find",
-          idtf: p.idtf,
+          idtf: id,
         };
       });
 
-      self.sendMessage("keynodes", payload, (data: Response) => {
-        const addrs: ScAddr[] = data.payload.map((n: number) => {
-          return new ScAddr(n);
-        });
+      this.sendMessage("keynodes", payload, (data: Response) => {
+        const addrs = data.payload.map((addr: number) => new ScAddr(addr));
 
-        const result: ResolveIdtfMap = {};
+        const result = {} as Record<ParamId, ScAddr>;
         for (let i = 0; i < addrs.length; ++i) {
-          result[params[i].idtf] = addrs[i];
+          result[params[i].id] = addrs[i];
         }
         resolve(result);
       });
     });
   }
 
-  private ProcessTripleItem(it: ScTemplateValue) {
+  private processTripleItem(it: ScTemplateValue) {
     let result: any = {};
     if (it.value instanceof ScAddr) {
       result = { type: "addr", value: it.value.value };
@@ -305,13 +299,8 @@ export class ScClient {
     return result;
   }
 
-  /* Search constructions by specified template
-   */
-  public async TemplateSearch(
-    templ: ScTemplate | string
-  ): Promise<ScTemplateSearchResult> {
-    const self = this;
-    return new Promise<ScTemplateSearchResult>(async function (resolve) {
+  public async templateSearch(templ: ScTemplate | string) {
+    return new Promise<ScTemplateSearchResult>(async (resolve) => {
       let payload: any = [];
 
       if (typeof templ === "string") {
@@ -320,14 +309,14 @@ export class ScClient {
         templ.ForEachSearchTriple((triple: ScTemplateTriple) => {
           let items: object[] = [];
           payload.push([
-            self.ProcessTripleItem(triple.source),
-            self.ProcessTripleItem(triple.edge),
-            self.ProcessTripleItem(triple.target),
+            this.processTripleItem(triple.source),
+            this.processTripleItem(triple.edge),
+            this.processTripleItem(triple.target),
           ]);
         });
       }
 
-      self.sendMessage("search_template", payload, (data: Response) => {
+      this.sendMessage("search_template", payload, (data: Response) => {
         let result: ScTemplateSearchResult = [];
         if (data.status) {
           const aliases: any = data.payload["aliases"];
@@ -347,30 +336,25 @@ export class ScClient {
     });
   }
 
-  /* Search constructions by specified template
-   */
-  public async TemplateGenerate(
+  public async templateGenerate(
     templ: ScTemplate | string,
     params: ScTemplateGenParams
-  ): Promise<ScTemplateResult> {
-    const self = this;
-    return new Promise<ScTemplateResult>(async function (resolve) {
+  ) {
+    return new Promise<ScTemplateResult | null>(async (resolve) => {
       let templData: any = [];
 
       if (typeof templ === "string") {
         templData = templ;
       } else {
         templ.ForEachSearchTriple((triple: ScTemplateTriple) => {
-          let items: object[] = [];
-
           templData.push([
-            self.ProcessTripleItem(triple.source),
-            self.ProcessTripleItem(triple.edge),
-            self.ProcessTripleItem(triple.target),
+            this.processTripleItem(triple.source),
+            this.processTripleItem(triple.edge),
+            this.processTripleItem(triple.target),
           ]);
         });
       }
-      const jsonParams = {};
+      const jsonParams = {} as Record<string, any>;
       for (let key in params) {
         if (params.hasOwnProperty(key)) {
           jsonParams[key] = params[key].value;
@@ -378,7 +362,7 @@ export class ScClient {
       }
       const payload = { templ: templData, params: jsonParams };
 
-      self.sendMessage("generate_template", payload, (data: Response) => {
+      this.sendMessage("generate_template", payload, (data: Response) => {
         if (data.status) {
           const aliases: any = data.payload["aliases"];
           const addrs: number[] = data.payload["addrs"];
@@ -396,13 +380,8 @@ export class ScClient {
     });
   }
 
-  /// -----------------------
-  /**
-   * Create specified ScEvent
-   */
-  public async EventsCreate(events: ScEventParams[]): Promise<ScEvent[]> {
-    const self = this;
-    return new Promise<ScEvent[]>(function (resolve) {
+  public async eventsCreate(events: ScEventParams[]) {
+    return new Promise<ScEvent[]>((resolve) => {
       const payload = {
         create: events.map((evt: ScEventParams) => {
           return {
@@ -412,14 +391,14 @@ export class ScClient {
         }),
       };
 
-      self.sendMessage("events", payload, (data: Response) => {
+      this.sendMessage("events", payload, (data: Response) => {
         const result: ScEvent[] = [];
         for (let i = 0; i < events.length; ++i) {
           const id: number = data.payload[i];
           const callback: ScEventCallbackFunc = events[i].callback;
 
           const evt: ScEvent = new ScEvent(id, events[i].type, callback);
-          self._events[id] = evt;
+          this._events[id] = evt;
 
           result.push(evt);
         }
@@ -429,21 +408,17 @@ export class ScClient {
     });
   }
 
-  /**
-   * Destroy specified event
-   */
-  public async EventsDestroy(events: ScEvent[]): Promise<void> {
-    const self = this;
-    return new Promise<void>(function (resolve) {
+  public async eventsDestroy(events: ScEvent[]): Promise<void> {
+    return new Promise<void>((resolve) => {
       const payload = {
         delete: events.map((evt: ScEvent) => {
           return evt.id;
         }),
       };
 
-      self.sendMessage("events", payload, (data: Response) => {
+      this.sendMessage("events", payload, (data: Response) => {
         for (let i = 0; i < events.length; ++i) {
-          delete self._events[events[i].id];
+          delete this._events[events[i].id];
         }
         resolve();
       });

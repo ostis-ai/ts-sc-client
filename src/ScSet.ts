@@ -57,7 +57,7 @@ export class ScSet {
     // subscribe to events
     if (!this._addr) return;
 
-    const events = await this._scClient?.EventsCreate([
+    const events = await this._scClient?.eventsCreate([
       new ScEventParams(
         this._addr,
         ScEventType.AddOutgoingEdge,
@@ -82,7 +82,7 @@ export class ScSet {
 
   private async ShouldAppend(addrs: ScAddr[]): Promise<boolean[] | undefined> {
     const self = this;
-    const types = await this._scClient?.CheckElements(addrs);
+    const types = await this._scClient?.checkElements(addrs);
     const result = types?.map((t: ScType) => {
       return !(
         self._filterType &&
@@ -173,7 +173,7 @@ export class ScSet {
       [ScType.Unknown, "_item"]
     );
 
-    const searchRes = await this._scClient.TemplateSearch(templ);
+    const searchRes = await this._scClient.templateSearch(templ);
     const forCheck =
       searchRes?.map((v: ScTemplateResult) => v.Get("_item")) || [];
 
@@ -219,9 +219,9 @@ export class ScSet {
     );
 
     const searchRes: ScTemplateSearchResult =
-      await this._scClient.TemplateSearch(templ);
+      await this._scClient.templateSearch(templ);
     if (searchRes.length == 0) {
-      const genRes = await this._scClient.TemplateGenerate(templ, {
+      const genRes = await this._scClient.templateGenerate(templ, {
         _item: el,
       });
       if (genRes) {

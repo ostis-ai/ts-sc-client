@@ -1,27 +1,23 @@
 {
-  "name": "@ostis/sc-core",
-  "version": "0.3.0",
+  "name": "ts-sc-client",
+  "version": "1.0.0",
   "description": "Core library to work with sc-memory from web browser",
-  "main": "build/sc.js",
-  "types": "build/lib/index.d.ts",
+  "main": "webpack.common.js",
   "scripts": {
-    "watch": "webpack --progress --color --watch --config webpack.dev.js",
-    "webpack-dev": "webpack --progress --color --config webpack.dev.js",
-    "webpack-prod": "webpack --progress --color --config webpack.prod.js",
-    "prepublish": "npm run webpack-prod",
-    "prepare": "npm run webpack-prod",
-    "test": "npm run webpack-dev && mocha"
+    "start": "webpack --progress --color --config webpack.dev.js",
+    "build": "webpack --progress --color --config webpack.prod.js",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/ostis-dev/sc-core.git"
+    "url": "git+https://github.com/ostis-ai/ts-sc-client.git"
   },
-  "author": "Denis Koronchik <denis.koronchik@gmail.com>",
+  "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ostis-dev/sc-core/issues"
+    "url": "https://github.com/ostis-ai/ts-sc-client/issues"
   },
-  "homepage": "https://github.com/ostis-dev/sc-core#readme",
+  "homepage": "https://github.com/ostis-ai/ts-sc-client#readme",
   "devDependencies": {
     "@types/jest": "27.4.1",
     "jest": "27.5.1",
