@@ -29,22 +29,20 @@ export class ScTemplate {
   private _triples: ScTemplateTriple[] = [];
 
   // internal usage only
-  public ForEachSearchTriple(callback: (triple: ScTemplateTriple) => void) {
-    for (let i = 0; i < this._triples.length; ++i) {
-      callback(this._triples[i]);
-    }
+  public forEachSearchTriple(callback: (triple: ScTemplateTriple) => void) {
+    this._triples.forEach((tripple) => {
+      callback(tripple);
+    });
   }
 
-  public Triple(
+  public triple(
     param1: ScTemplateParam,
     param2: ScTemplateParam,
     param3: ScTemplateParam
   ): ScTemplate {
-    const p1: ScTemplateValue = this.SplitTemplateParam(param1);
-    const p2: ScTemplateValue = this.SplitTemplateParam(param2);
-    const p3: ScTemplateValue = this.SplitTemplateParam(param3);
-
-    const baseIdx: number = this._triples.length * 3;
+    const p1 = this.splitTemplateParam(param1);
+    const p2 = this.splitTemplateParam(param2);
+    const p3 = this.splitTemplateParam(param3);
 
     this._triples.push({
       source: p1,
@@ -55,47 +53,46 @@ export class ScTemplate {
     return this;
   }
 
-  public TripleWithRelation(
+  public tripleWithRelation(
     param1: ScTemplateParam,
     param2: ScTemplateParam,
     param3: ScTemplateParam,
     param4: ScTemplateParam,
     param5: ScTemplateParam
   ): ScTemplate {
-    let { alias, value } = this.SplitTemplateParam(param2);
+    let { alias, value } = this.splitTemplateParam(param2);
     if (!alias) alias = `edge_1_${this._triples.length}`;
 
-    this.Triple(param1, [value, alias], param3);
-    this.Triple(param5, param4, alias);
+    this.triple(param1, [value, alias], param3);
+    this.triple(param5, param4, alias);
 
     return this;
   }
 
-  private SplitTemplateParam(param: ScTemplateParam): ScTemplateValue {
+  private splitTemplateParam(param: ScTemplateParam): ScTemplateValue {
     if (param instanceof Array) {
-      if (param.length != 2) {
+      if (param.length !== 2) {
         throw "Invalid number of values for remplacement. Use [ScType | ScAddr, string]";
       }
 
-      const value: any = param[0];
-      const alias: any = param[1];
+      const value = param[0];
+      const alias = param[1];
 
-      const isValidValue: boolean =
-        value instanceof ScAddr || value instanceof ScType;
+      const isValidValue = value instanceof ScAddr || value instanceof ScType;
 
-      if (!isValidValue || !(typeof alias === "string")) {
+      if (!isValidValue || typeof alias !== "string") {
         throw "First parameter should be ScAddr or ScType. The second one - string";
       }
 
       return {
-        alias: alias as string,
-        value: value as ScTemplateParamValue,
+        alias,
+        value,
       };
     }
 
     return {
       alias: null,
-      value: param as ScTemplateParamValue,
+      value: param,
     };
   }
 }

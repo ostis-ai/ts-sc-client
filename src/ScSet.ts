@@ -53,7 +53,7 @@ export class ScSet {
       throw `Invalid addr of set: ${this._addr}`;
   }
 
-  public async Initialize(): Promise<void> {
+  public async initialize(): Promise<void> {
     // subscribe to events
     if (!this._addr) return;
 
@@ -61,26 +61,26 @@ export class ScSet {
       new ScEventParams(
         this._addr,
         ScEventType.AddOutgoingEdge,
-        this.OnEventAddElement.bind(this)
+        this.onEventAddElement.bind(this)
       ),
       new ScEventParams(
         this._addr,
         ScEventType.RemoveOutgoingEdge,
-        this.OnEventRemoveElement.bind(this)
+        this.onEventRemoveElement.bind(this)
       ),
     ]);
 
     this._evtAddElement = events?.[0];
     this._evtRemoveElement = events?.[1];
 
-    await this.IterateExistingElements();
+    await this.iterateExistingElements();
 
     return new Promise<void>(function (resolve) {
       resolve();
     });
   }
 
-  private async ShouldAppend(addrs: ScAddr[]): Promise<boolean[] | undefined> {
+  private async shouldAppend(addrs: ScAddr[]): Promise<boolean[] | undefined> {
     const self = this;
     const types = await this._scClient?.checkElements(addrs);
     const result = types?.map((t: ScType) => {
@@ -95,18 +95,18 @@ export class ScSet {
     });
   }
 
-  private async OnEventAddElement(
+  private async onEventAddElement(
     setAddr: ScAddr,
     edgeAddr: ScAddr,
     itemAddr: ScAddr
   ): Promise<void> {
     if (!this._elements[edgeAddr.value]) {
       if (itemAddr.isValid()) {
-        const checks = await this.ShouldAppend([itemAddr]);
+        const checks = await this.shouldAppend([itemAddr]);
         const append = checks?.[0];
         if (append) {
           this._elements[edgeAddr.value] = itemAddr;
-          this.CallOnAdd(itemAddr);
+          this.callOnAdd(itemAddr);
         }
       }
     }
@@ -116,7 +116,7 @@ export class ScSet {
     });
   }
 
-  private async OnEventRemoveElement(
+  private async onEventRemoveElement(
     setAddr: ScAddr,
     edgeAddr: ScAddr
   ): Promise<void> {
@@ -124,7 +124,7 @@ export class ScSet {
     if (!trg)
       throw `Invalid state of set: ${this._addr} (try to remove element ${edgeAddr}, that doesn't exist)`;
 
-    await this.CallOnRemove(trg);
+    await this.callOnRemove(trg);
     delete this._elements[edgeAddr.value];
 
     return new Promise<void>(function (resolve) {
@@ -132,7 +132,7 @@ export class ScSet {
     });
   }
 
-  private async CallOnInitialize(addrs: ScAddr[]): Promise<void> {
+  private async callOnInitialize(addrs: ScAddr[]): Promise<void> {
     if (this._onInitialize) {
       await this._onInitialize(addrs);
     }
@@ -141,7 +141,7 @@ export class ScSet {
     });
   }
 
-  private async CallOnAdd(addr: ScAddr): Promise<void> {
+  private async callOnAdd(addr: ScAddr): Promise<void> {
     if (this._onAdd) {
       await this._onAdd(addr);
     }
@@ -151,7 +151,7 @@ export class ScSet {
     });
   }
 
-  private async CallOnRemove(addr: ScAddr): Promise<void> {
+  private async callOnRemove(addr: ScAddr): Promise<void> {
     if (this._onRemove) {
       await this._onRemove(addr);
     }
@@ -161,13 +161,13 @@ export class ScSet {
     });
   }
 
-  private async IterateExistingElements(): Promise<void> {
+  private async iterateExistingElements(): Promise<void> {
     if (!this._addr || !this._scClient) return;
 
     const elements: ScAddr[] = [];
 
     const templ: ScTemplate = new ScTemplate();
-    templ.Triple(
+    templ.triple(
       this._addr,
       [ScType.EdgeAccessVarPosPerm, "_edge"],
       [ScType.Unknown, "_item"]
@@ -175,17 +175,17 @@ export class ScSet {
 
     const searchRes = await this._scClient.templateSearch(templ);
     const forCheck =
-      searchRes?.map((v: ScTemplateResult) => v.Get("_item")) || [];
+      searchRes?.map((v: ScTemplateResult) => v.get("_item")) || [];
 
-    const shouldAdd = await this.ShouldAppend(forCheck);
+    const shouldAdd = await this.shouldAppend(forCheck);
 
     for (let i = 0; i < searchRes.length; ++i) {
       if (!shouldAdd?.[i]) {
         continue;
       }
 
-      const edge: ScAddr = searchRes[i].Get("_edge");
-      const trg: ScAddr = searchRes[i].Get("_item");
+      const edge: ScAddr = searchRes[i].get("_edge");
+      const trg: ScAddr = searchRes[i].get("_item");
 
       if (this._elements[edge.value]) {
         throw `Element ${trg} already exist in set`;
@@ -195,7 +195,7 @@ export class ScSet {
       elements.push(trg);
     }
 
-    await this.CallOnInitialize(elements);
+    await this.callOnInitialize(elements);
 
     return new Promise<void>(function (resolve) {
       resolve();
@@ -207,12 +207,12 @@ export class ScSet {
    * If element was added into set, then returns true; otherwise - false
    * @param el addr of set item to add
    */
-  public async AddItem(el: ScAddr): Promise<boolean | undefined> {
+  public async addItem(el: ScAddr): Promise<boolean | undefined> {
     if (!this._addr || !this._scClient) return;
 
     let result: boolean = false;
     const templ: ScTemplate = new ScTemplate();
-    templ.Triple(
+    templ.triple(
       this._addr,
       [ScType.EdgeAccessVarPosPerm, "_edge"],
       [el, "_item"]
@@ -225,7 +225,7 @@ export class ScSet {
         _item: el,
       });
       if (genRes) {
-        const edge: ScAddr = genRes.Get("_item");
+        const edge: ScAddr = genRes.get("_item");
         result = edge && edge.isValid();
       }
     }

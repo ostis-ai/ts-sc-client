@@ -28,15 +28,16 @@ export class ScLinkContent {
     return this._addr;
   }
 
-  public TypeToStr() {
-    if (this._type == ScLinkContentType.Binary) {
-      return "binary";
-    } else if (this._type == ScLinkContentType.Float) {
-      return "float";
-    } else if (this._type == ScLinkContentType.Int) {
-      return "int";
+  public typeToStr() {
+    switch (this._type) {
+      case ScLinkContentType.Binary:
+        return "binary";
+      case ScLinkContentType.Float:
+        return "float";
+      case ScLinkContentType.Int:
+        return "int";
+      default:
+        return "string";
     }
-
-    return "string";
   }
 }

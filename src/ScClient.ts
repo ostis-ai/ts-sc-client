@@ -1,4 +1,4 @@
-import { InvalidValue } from "./errors";
+import { invalidValue } from "./errors";
 import { ScAddr } from "./ScAddr";
 import { ScConstruction } from "./ScConstruction";
 import { ScConstructionCommand } from "./ScConstructionCommand";
@@ -11,19 +11,17 @@ import { ScType } from "./scType";
 
 type WSCallback = (data: Response) => void;
 
-interface Response {
+interface Response<T = any> {
   id: number;
   status: boolean;
   event: boolean;
-  payload: any;
+  payload: T;
 }
 
 interface KeynodeParam<ParamId extends string = string> {
   id: ParamId;
   type: ScType;
 }
-
-type ResolveIdtfMap = { [id: string]: ScAddr };
 
 type SocketEvent = "close" | "error" | "open";
 
@@ -84,7 +82,8 @@ export class ScClient {
         evt.callback?.(
           new ScAddr(data.payload[0]),
           new ScAddr(data.payload[1]),
-          new ScAddr(data.payload[2])
+          new ScAddr(data.payload[2]),
+          evt.id
         );
       } else {
         throw `Can't find callback for an event ${cmdID}`;
@@ -126,11 +125,11 @@ export class ScClient {
     sendData();
   }
 
-  public async checkElements(addrs: ScAddr[]): Promise<ScType[]> {
+  public async checkElements(addrs: ScAddr[]) {
     return new Promise<ScType[]>((resolve) => {
       if (!addrs.length) return resolve([]);
 
-      const payload = addrs.map(({ value }: ScAddr) => value);
+      const payload = addrs.map(({ value }) => value);
 
       this.sendMessage("check_elements", payload, (data: Response) => {
         const result = data.payload.map((scType: number) => new ScType(scType));
@@ -141,13 +140,14 @@ export class ScClient {
 
   public async createElements(constr: ScConstruction) {
     return new Promise<ScAddr[]>((resolve) => {
-      let payload: any[] = constr.commands.map((cmd: ScConstructionCommand) => {
+      const payload = constr.commands.map((cmd: ScConstructionCommand) => {
         if (cmd.type.isNode()) {
           return {
             el: "node",
             type: cmd.type.value,
           };
-        } else if (cmd.type.isEdge()) {
+        }
+        if (cmd.type.isEdge()) {
           function solveAdj(obj: any) {
             if (obj instanceof ScAddr) {
               return {
@@ -156,9 +156,9 @@ export class ScClient {
               };
             }
 
-            const idx: number = constr.GetIndex(obj);
+            const idx = constr.getIndex(obj);
             if (idx === undefined) {
-              InvalidValue(`Invalid alias: ${obj}`);
+              invalidValue(`Invalid alias: ${obj}`);
             }
             return {
               type: "ref",
@@ -172,7 +172,8 @@ export class ScClient {
             src: solveAdj(cmd.data.src),
             trg: solveAdj(cmd.data.trg),
           };
-        } else if (cmd.type.isLink()) {
+        }
+        if (cmd.type.isLink()) {
           return {
             el: "link",
             type: cmd.type.value,
@@ -181,24 +182,18 @@ export class ScClient {
           };
         }
 
-        InvalidValue("Unknown type");
+        invalidValue("Unknown type");
       });
 
       this.sendMessage("create_elements", payload, (data: Response) => {
-        resolve(
-          data.payload.map((a: number): ScAddr => {
-            return new ScAddr(a);
-          })
-        );
+        resolve(data.payload.map((a: number) => new ScAddr(a)));
       });
     });
   }
 
   public async deleteElements(addrs: ScAddr[]) {
     return new Promise<boolean>((resolve) => {
-      const payload = addrs.map((a: ScAddr) => {
-        return a.value;
-      });
+      const payload = addrs.map(({ value }) => value);
       this.sendMessage("delete_elements", payload, (data: Response) => {
         resolve(data.status);
       });
@@ -207,12 +202,12 @@ export class ScClient {
 
   public async setLinkContents(contents: ScLinkContent[]) {
     return new Promise<boolean[]>((resolve) => {
-      const payload = contents.map((c: ScLinkContent) => {
+      const payload = contents.map((content) => {
         return {
           command: "set",
-          type: c.TypeToStr(),
-          data: c.data,
-          addr: c.addr?.value,
+          type: content.typeToStr(),
+          data: content.data,
+          addr: content.addr?.value,
         };
       });
 
@@ -224,10 +219,10 @@ export class ScClient {
 
   public async getLinkContents(addrs: ScAddr[]) {
     return new Promise<ScLinkContent[]>((resolve) => {
-      const payload = addrs.map((a: ScAddr) => {
+      const payload = addrs.map(({ value }) => {
         return {
           command: "get",
-          addr: a.value,
+          addr: value,
         };
       });
 
@@ -306,7 +301,7 @@ export class ScClient {
       if (typeof templ === "string") {
         payload = templ;
       } else {
-        templ.ForEachSearchTriple((triple: ScTemplateTriple) => {
+        templ.forEachSearchTriple((triple: ScTemplateTriple) => {
           let items: object[] = [];
           payload.push([
             this.processTripleItem(triple.source),
@@ -346,7 +341,7 @@ export class ScClient {
       if (typeof templ === "string") {
         templData = templ;
       } else {
-        templ.ForEachSearchTriple((triple: ScTemplateTriple) => {
+        templ.forEachSearchTriple((triple: ScTemplateTriple) => {
           templData.push([
             this.processTripleItem(triple.source),
             this.processTripleItem(triple.edge),
@@ -368,7 +363,7 @@ export class ScClient {
           const addrs: number[] = data.payload["addrs"];
 
           let resultAddrs: ScAddr[] = [];
-          addrs.forEach((a: number) => {
+          addrs.forEach((a) => {
             resultAddrs.push(new ScAddr(a));
           });
 
@@ -380,46 +375,46 @@ export class ScClient {
     });
   }
 
-  public async eventsCreate(events: ScEventParams[]) {
+  public async eventsCreate(eventOrEvents: ScEventParams[] | ScEventParams) {
+    const events = Array.isArray(eventOrEvents)
+      ? eventOrEvents
+      : [eventOrEvents];
+
     return new Promise<ScEvent[]>((resolve) => {
       const payload = {
-        create: events.map((evt: ScEventParams) => {
-          return {
-            type: evt.type,
-            addr: evt.addr.value,
-          };
-        }),
+        create: events.map(({ type, addr }) => ({
+          type,
+          addr: addr.value,
+        })),
       };
 
-      this.sendMessage("events", payload, (data: Response) => {
-        const result: ScEvent[] = [];
-        for (let i = 0; i < events.length; ++i) {
-          const id: number = data.payload[i];
-          const callback: ScEventCallbackFunc = events[i].callback;
-
-          const evt: ScEvent = new ScEvent(id, events[i].type, callback);
-          this._events[id] = evt;
-
-          result.push(evt);
-        }
+      this.sendMessage("events", payload, (data: Response<number[]>) => {
+        const result = events.map(({ callback, type }, ind) => {
+          const eventId = data.payload[ind];
+          const newEvt = new ScEvent(eventId, type, callback);
+          this._events[eventId] = newEvt;
+          return newEvt;
+        });
 
         resolve(result);
       });
     });
   }
 
-  public async eventsDestroy(events: ScEvent[]): Promise<void> {
+  public async eventsDestroy(eventIdOrIds: number[] | number) {
+    const eventIds = Array.isArray(eventIdOrIds)
+      ? eventIdOrIds
+      : [eventIdOrIds];
+
     return new Promise<void>((resolve) => {
       const payload = {
-        delete: events.map((evt: ScEvent) => {
-          return evt.id;
-        }),
+        delete: eventIds,
       };
 
-      this.sendMessage("events", payload, (data: Response) => {
-        for (let i = 0; i < events.length; ++i) {
-          delete this._events[events[i].id];
-        }
+      this.sendMessage("events", payload, () => {
+        eventIds.forEach((eventId) => {
+          delete this._events[eventId];
+        });
         resolve();
       });
     });

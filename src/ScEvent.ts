@@ -3,7 +3,8 @@ import { ScAddr } from "./ScAddr";
 export type ScEventCallbackFunc = (
   elAddr: ScAddr,
   edge: ScAddr,
-  other: ScAddr
+  other: ScAddr,
+  eventId: number
 ) => void;
 
 export enum ScEventType {

@@ -19,7 +19,7 @@ export class ScTemplateResult {
     return this._addrs.length;
   }
 
-  public Get(aliasOrIndex: string | number) {
+  public get(aliasOrIndex: string | number) {
     if (typeof aliasOrIndex === "string") {
       return this._addrs[this._indecies[aliasOrIndex]];
     }
@@ -27,7 +27,7 @@ export class ScTemplateResult {
     return this._addrs[aliasOrIndex];
   }
 
-  public ForEachTriple(func: ScTripleCallback) {
+  public forEachTriple(func: ScTripleCallback) {
     for (let i = 0; i < this.size; i += 3) {
       func(this._addrs[i], this._addrs[i + 1], this._addrs[i + 2]);
     }
