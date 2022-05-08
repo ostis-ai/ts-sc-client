@@ -7,6 +7,8 @@ export enum ScLinkContentType {
   Binary = 3,
 }
 
+export type TContentString = "binary" | "float" | "int" | "string";
+
 export class ScLinkContent {
   private _data: string | number;
   private _type: ScLinkContentType;
@@ -28,7 +30,7 @@ export class ScLinkContent {
     return this._addr;
   }
 
-  public typeToStr() {
+  public typeToStr(): TContentString {
     switch (this._type) {
       case ScLinkContentType.Binary:
         return "binary";
@@ -38,6 +40,19 @@ export class ScLinkContent {
         return "int";
       default:
         return "string";
+    }
+  }
+
+  public static stringToType(string: TContentString): ScLinkContentType {
+    switch (string) {
+      case "binary":
+        return ScLinkContentType.Binary;
+      case "float":
+        return ScLinkContentType.Float;
+      case "int":
+        return ScLinkContentType.Int;
+      default:
+        return ScLinkContentType.String;
     }
   }
 }

@@ -28,6 +28,10 @@ export interface ScTemplateTriple {
 export class ScTemplate {
   private _triples: ScTemplateTriple[] = [];
 
+  get triples() {
+    return this._triples;
+  }
+
   // internal usage only
   public forEachSearchTriple(callback: (triple: ScTemplateTriple) => void) {
     this._triples.forEach((tripple) => {

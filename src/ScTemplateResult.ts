@@ -1,20 +1,16 @@
 import { ScAddr } from "./ScAddr";
 
-// Result of template search
-type ScValueIndex = { [id: string]: number };
 type ScTripleCallback = (src: ScAddr, edge: ScAddr, trg: ScAddr) => void;
-
-export type ScTemplateSearchResult = ScTemplateResult[];
-export type ScTemplateGenerateResult = ScTemplateResult;
 
 export class ScTemplateResult {
   private _addrs: ScAddr[] = [];
-  private _indecies: ScValueIndex = {};
+  private _indecies: Record<string, number> = {};
 
-  constructor(indecies: ScValueIndex, addrs: ScAddr[]) {
+  constructor(indecies: Record<string, number>, addrs: ScAddr[]) {
     this._indecies = indecies;
     this._addrs = addrs;
   }
+
   public get size() {
     return this._addrs.length;
   }
