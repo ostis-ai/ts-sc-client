@@ -1,4 +1,4 @@
-import { ScType } from "./scType";
+import { ScType } from "./ScType";
 
 export class ScConstructionCommand {
   private _elType: ScType;

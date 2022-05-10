@@ -1,4 +1,4 @@
-import { ScEventType } from "./scEvent";
+import { ScEventType } from "./ScEvent";
 import { ScLinkContentType, TContentString } from "./ScLinkContent";
 
 export interface IContentResult {
@@ -36,7 +36,7 @@ export interface INode {
   type: number;
 }
 
-export interface IEdgeSide {
+interface IEdgeInfo {
   type: "addr" | "ref";
   value: number;
 }
@@ -44,8 +44,8 @@ export interface IEdgeSide {
 export interface IEdge {
   el: "edge";
   type: number;
-  src: IEdgeSide;
-  trg: IEdgeSide;
+  src: IEdgeInfo;
+  trg: IEdgeInfo;
 }
 
 export interface ILink {
@@ -55,30 +55,30 @@ export interface ILink {
   content_type: ScLinkContentType;
 }
 
-interface ITrippleAddr {
+interface ITripleAddr {
   type: "addr";
   value: number;
   alias?: string;
 }
 
-interface ITrippleType {
+interface ITripleType {
   type: "type";
   value: number;
   alias?: string;
 }
 
-interface ITrippleAlias {
+interface ITripleAlias {
   type: "alias";
   value: string;
   alias?: string;
 }
 
-export type TTrippleItem = ITrippleAddr | ITrippleType | ITrippleAlias;
+export type TTripleItem = ITripleAddr | ITripleType | ITripleAlias;
 
-type TSearchTemplatePayload = TTrippleItem[][] | string;
+type TSearchTemplatePayload = TTripleItem[][] | string;
 
 interface IGenerateTemplatePayload {
-  templ: TTrippleItem[][] | string;
+  templ: TTripleItem[][] | string;
   params: Record<string, number>;
 }
 

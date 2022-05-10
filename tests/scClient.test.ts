@@ -5,7 +5,7 @@ import { ScType } from "../src/ScType";
 import WS from "jest-websocket-mock";
 import { ScLinkContent, ScLinkContentType } from "../src/ScLinkContent";
 import { ScTemplate } from "../src/ScTemplate";
-import { ScEvent, ScEventType } from "../src/scEvent";
+import { ScEvent, ScEventType } from "../src/ScEvent";
 import { ScEventParams } from "../src/ScEventParams";
 import { setupServer } from "./utils";
 import { ScTemplateResult } from "../src/ScTemplateResult";

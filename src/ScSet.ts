@@ -1,10 +1,10 @@
 import { ScAddr } from "./ScAddr";
 import { ScClient } from "./ScClient";
-import { ScEvent, ScEventType } from "./scEvent";
+import { ScEvent, ScEventType } from "./ScEvent";
 import { ScEventParams } from "./ScEventParams";
 import { ScTemplate } from "./ScTemplate";
 import { ScTemplateResult } from "./ScTemplateResult";
-import { ScType } from "./scType";
+import { ScType } from "./ScType";
 
 export type CallbackAddElement = (addr: ScAddr) => Promise<void>;
 export type CallbackRemoveElement = (addr: ScAddr) => Promise<void>;

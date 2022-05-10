@@ -1,16 +1,12 @@
 import { invalidValue } from "./errors";
 import { ScAddr } from "./ScAddr";
 import { ScConstruction } from "./ScConstruction";
-import { ScEvent } from "./scEvent";
+import { ScEvent } from "./ScEvent";
 import { ScEventParams } from "./ScEventParams";
-import {
-  ScLinkContent,
-  ScLinkContentType,
-  TContentString,
-} from "./ScLinkContent";
+import { ScLinkContent, TContentString } from "./ScLinkContent";
 import { ScTemplate, ScTemplateTriple, ScTemplateValue } from "./ScTemplate";
 import { ScTemplateResult } from "./ScTemplateResult";
-import { ScType } from "./scType";
+import { ScType } from "./ScType";
 import {
   IEdge,
   ILink,
@@ -24,12 +20,12 @@ import {
   TAction,
   TKeynodesElementsArgs,
   TTemplateSearchArgs,
-  TTrippleItem,
+  TTripleItem,
   TTemplateGenerateArgs,
   TCreateEventArgs,
   TDeleteEventArgs,
 } from "./types";
-import { transformEdgeSide } from "./utils";
+import { transformEdgeInfo } from "./utils";
 
 export interface Response<T = any> {
   id: number;
@@ -158,7 +154,7 @@ export class ScClient {
       const payload = addrs.map(({ value }) => value);
 
       this.sendMessage("check_elements", payload, (data) => {
-        const result = data.payload.map((scType: number) => new ScType(scType));
+        const result = data.payload.map((type: number) => new ScType(type));
         resolve(result);
       });
     });
@@ -178,8 +174,8 @@ export class ScClient {
             return {
               el: "edge",
               type: cmd.type.value,
-              src: transformEdgeSide(construction, cmd.data.src),
-              trg: transformEdgeSide(construction, cmd.data.trg),
+              src: transformEdgeInfo(construction, cmd.data.src),
+              trg: transformEdgeInfo(construction, cmd.data.trg),
             };
           }
           if (cmd.type.isLink()) {
@@ -283,7 +279,7 @@ export class ScClient {
     });
   }
 
-  private processTripleItem({ value, alias }: ScTemplateValue): TTrippleItem {
+  private processTripleItem({ value, alias }: ScTemplateValue): TTripleItem {
     const aliasObj = alias ? { alias } : {};
     if (value instanceof ScAddr) {
       return { type: "addr", value: value.value, ...aliasObj };

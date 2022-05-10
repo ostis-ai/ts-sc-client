@@ -2,7 +2,7 @@ import { invalidValue } from "./errors";
 import { ScAddr } from "./ScAddr";
 import { ScConstruction } from "./ScConstruction";
 
-export const transformEdgeSide = (
+export const transformEdgeInfo = (
   construction: ScConstruction,
   aliasOrAddr: ScAddr | string
 ) => {
