@@ -1,6 +1,6 @@
 import { ScAddr } from "./ScAddr";
 import { ScLinkContent } from "./ScLinkContent";
-import { ScType } from "./scType";
+import { ScType } from "./ScType";
 import { invalidValue } from "./errors";
 import { ScConstructionCommand } from "./ScConstructionCommand";
 

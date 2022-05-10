@@ -1,10 +1,10 @@
 import { ScAddr } from "./ScAddr";
 import { ScClient } from "./ScClient";
-import { ScEvent, ScEventType } from "./scEvent";
+import { ScEvent, ScEventType } from "./ScEvent";
 import { ScEventParams } from "./ScEventParams";
 import { ScTemplate } from "./ScTemplate";
-import { ScTemplateSearchResult, ScTemplateResult } from "./ScTemplateResult";
-import { ScType } from "./scType";
+import { ScTemplateResult } from "./ScTemplateResult";
+import { ScType } from "./ScType";
 
 export type CallbackAddElement = (addr: ScAddr) => Promise<void>;
 export type CallbackRemoveElement = (addr: ScAddr) => Promise<void>;
@@ -218,8 +218,7 @@ export class ScSet {
       [el, "_item"]
     );
 
-    const searchRes: ScTemplateSearchResult =
-      await this._scClient.templateSearch(templ);
+    const searchRes = await this._scClient.templateSearch(templ);
     if (searchRes.length == 0) {
       const genRes = await this._scClient.templateGenerate(templ, {
         _item: el,

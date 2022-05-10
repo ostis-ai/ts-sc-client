@@ -1,5 +1,5 @@
 import { ScAddr } from "./ScAddr";
-import { ScType } from "./scType";
+import { ScType } from "./ScType";
 
 type ScTemplateParamValue = string | ScAddr | ScType;
 type ScTemplateParam = ScTemplateParamValue[] | ScTemplateParamValue;
@@ -28,11 +28,8 @@ export interface ScTemplateTriple {
 export class ScTemplate {
   private _triples: ScTemplateTriple[] = [];
 
-  // internal usage only
-  public forEachSearchTriple(callback: (triple: ScTemplateTriple) => void) {
-    this._triples.forEach((tripple) => {
-      callback(tripple);
-    });
+  get triples() {
+    return this._triples;
   }
 
   public triple(
