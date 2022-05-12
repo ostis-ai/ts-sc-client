@@ -2,7 +2,7 @@ import { ScAddr } from "./ScAddr";
 import { ScType } from "./ScType";
 
 type ScTemplateParamValue = string | ScAddr | ScType;
-type ScTemplateParam = ScTemplateParamValue[] | ScTemplateParamValue;
+type ScTemplateParam = [ScTemplateParamValue, string] | ScTemplateParamValue;
 
 export interface ScTemplateValue {
   value: ScTemplateParamValue;
