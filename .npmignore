@@ -1,8 +1,0 @@
-node_modules/
-tests/
-src/
-
-.gitignore
-tsconfig.json
-jest.config.js
-webpack.*
