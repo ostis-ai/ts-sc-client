@@ -1,7 +1,6 @@
 # ts-sc-client
 
-<img src="https://github.com/ostis-ai/ts-sc-client/actions/workflows/run-tests.yml/badge.svg?branch=main">
-<img src="https://github.com/ostis-ai/ts-sc-client/actions/workflows/pull-request-ci.yml/badge.svg?branch=main">
+<img src="https://github.com/ostis-ai/ts-sc-client/actions/workflows/test.yml/badge.svg?branch=main">
 
 The typescript implementation of the client for communication with sc-server. This module is compatible with 0.6.0 and 0.6.1 version of sc-machine.
 

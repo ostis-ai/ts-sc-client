@@ -1,0 +1,64 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v*.*.*"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  quality:
+    runs-on: ubuntu-20.04
+    
+    strategy:
+      matrix:
+        node-version: [14.x]
+    
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup node ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npm run test
+
+  npm-publish:
+    runs-on: ubuntu-20.04
+    needs: quality
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: set up node ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm run build
+      - name: publish
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
+
+  gh-release:
+    needs: npm-publish
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: read changelog
+        id: changelogReader
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          version: ${{ github.ref_name }}
+          path: docs/changelog.md
+
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: ${{ steps.changelogReader.outputs.changes }}
+          name: '${{ github.ref_name }}'
