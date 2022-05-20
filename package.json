@@ -2,7 +2,7 @@
   "name": "ts-sc-client",
   "version": "0.1.0",
   "description": "Core library to work with sc-memory from web browser",
-  "main": "sc.js",
+  "main": "build/sc.js",
   "scripts": {
     "start": "webpack --progress --color --config webpack/webpack.dev.js",
     "build": "webpack --progress --color --config webpack/webpack.prod.js",
