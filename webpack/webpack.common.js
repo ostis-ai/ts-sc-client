@@ -1,10 +1,9 @@
 const path = require("path");
-const outputPath = path.resolve(__dirname, "build");
 
 module.exports = {
   mode: "none",
   entry: {
-    app: "./src/index.ts",
+    app: path.resolve(process.cwd(), "src/index.ts"),
   },
   module: {
     rules: [
@@ -38,7 +37,7 @@ module.exports = {
   externalsPresets: { node: true },
   output: {
     filename: "sc.js",
-    path: outputPath,
+    path: path.resolve(process.cwd(), "build"),
     libraryTarget: "umd",
     library: "sc",
   },

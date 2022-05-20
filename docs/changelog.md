@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.2]
+### Fixed
+ - correct webpack output path
+
+## [v0.1.1]
+### Changed
+ - package.json main property
+
 ## [v0.1.0]
 ### Added
  - README and LICENSE files
@@ -24,7 +32,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - CI for checking messages of commits
  - CI for test
  - CI for publishing package on npm
-
-## [v0.1.1]
-### Changed
- - package.json main property
