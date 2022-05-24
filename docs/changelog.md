@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.3]
+### Fixed
+ - add output types path
+
 ## [v0.1.2]
 ### Fixed
  - correct webpack output path
