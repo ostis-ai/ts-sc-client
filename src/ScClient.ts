@@ -307,7 +307,7 @@ export class ScClient {
 
   private processTemplateParams(params: Record<string, ScAddr | string>) {
     return Object.keys(params).reduce(
-        function(acc, key) {
+        (acc, key) => {
           const param = params[key];
           acc[key] = typeof param === "string" ? param : param.value;
           return acc;
