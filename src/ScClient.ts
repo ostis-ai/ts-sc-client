@@ -290,31 +290,28 @@ export class ScClient {
     return { type: "alias", value, ...aliasObj };
   }
 
-  private processTemplate(template: ScTemplate | ScAddr | string)
-    : TTripleItem[][] | { type: string; value: string | number; } | string {
-    let templ;
+  private processTemplate(template: ScTemplate | ScAddr | string) {
     if (template instanceof ScAddr)
-      templ = { type: "addr", value: template.value };
+      return { type: "addr", value: template.value };
     else if (typeof template === "string" && template.search(/^([a-z]|_|\\d)*/))
-      templ = { type: "idtf", value: template };
+      return { type: "idtf", value: template };
     else if (typeof template === "string")
-      templ = template;
+      return template;
     else
-      templ = template.triples.map(({ source, edge, target }) => [
+      return template.triples.map(({ source, edge, target }) => [
         this.processTripleItem(source),
         this.processTripleItem(edge),
         this.processTripleItem(target),
       ]);
-
-    return templ;
   }
 
-  private processTemplateParams(params: Record<string, ScAddr | string>): Record<string, string | number> {
+  private processTemplateParams(params: Record<string, ScAddr | string>) {
     return Object.keys(params).reduce(
-        (acc, key) => ({
-          ...acc,
-          [key]: typeof params[key] === "string" ? <string>params[key] : (<ScAddr>params[key]).value,
-        }),
+        function(acc, key) {
+          const param = params[key];
+          acc[key] = typeof param === "string" ? param : param.value;
+          return acc;
+        },
         {} as Record<string, number | string>
     );
   }
@@ -331,7 +328,7 @@ export class ScClient {
       this.sendMessage("search_template", payload, ({ payload, status }) => {
         if (!status) return resolve([]);
 
-        const result = payload.addrs.map((addrs: any[]) => {
+        const result = payload.addrs.map((addrs) => {
           const templateAddrs = addrs.map((addr) => new ScAddr(addr));
           return new ScTemplateResult(payload.aliases, templateAddrs);
         });
@@ -352,7 +349,7 @@ export class ScClient {
 
       this.sendMessage("generate_template", payload, ({ status, payload }) => {
         if (!status) resolve(null);
-        const addrs = payload.addrs.map((addr: number) => new ScAddr(addr));
+        const addrs = payload.addrs.map((addr) => new ScAddr(addr));
         resolve(new ScTemplateResult(payload.aliases, addrs));
       });
     });
