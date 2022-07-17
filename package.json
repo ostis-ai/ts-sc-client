@@ -1,6 +1,6 @@
 {
   "name": "ts-sc-client",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Core library to work with sc-memory from web browser",
   "main": "build/sc.js",
   "types": "build/lib",
