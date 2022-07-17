@@ -23,6 +23,7 @@
   "homepage": "https://github.com/ostis-ai/ts-sc-client#readme",
   "devDependencies": {
     "@types/jest": "27.4.1",
+    "@types/ws": "^8.5.3",
     "jest": "27.5.1",
     "jest-websocket-mock": "2.3.0",
     "ts-jest": "27.1.4",
@@ -31,5 +32,8 @@
     "webpack": "5.72.0",
     "webpack-cli": "4.9.2",
     "webpack-merge": "5.8.0"
+  },
+  "dependencies": {
+    "ws": "8.8.1"
   }
 }

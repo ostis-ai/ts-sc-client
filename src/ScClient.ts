@@ -26,6 +26,7 @@ import {
   TDeleteEventArgs,
 } from "./types";
 import { transformEdgeInfo } from "./utils";
+import { WebSocket, MessageEvent } from "ws";
 
 export interface Response<T = any> {
   id: number;
@@ -68,11 +69,11 @@ export class ScClient {
   }
 
   public addEventListener(evt: SocketEvent, cb: () => void) {
-    this._socket.addEventListener(evt, cb);
+    this._socket.addEventListener(evt as any, cb);
   }
 
   public removeEventListener(evt: SocketEvent, cb: () => void) {
-    this._socket.removeEventListener(evt, cb);
+    this._socket.removeEventListener(evt as any, cb);
   }
 
   private sendMessagesFromQueue = () => {
@@ -81,7 +82,7 @@ export class ScClient {
   };
 
   private onMessage = (messageEvent: MessageEvent) => {
-    const data = JSON.parse(messageEvent.data) as Response;
+    const data = JSON.parse(messageEvent.data.toString()) as Response;
     const cmdID = data.id;
     const callback = this._callbacks[cmdID];
 
@@ -291,7 +292,7 @@ export class ScClient {
   }
 
   public async templateSearch(template: ScTemplate | string) {
-    return new Promise<ScTemplateResult[]>(async (resolve) => {
+    return new Promise<ScTemplateResult[]>(async (resolve, reject) => {
       const payload =
         typeof template === "string"
           ? template
@@ -303,6 +304,7 @@ export class ScClient {
 
       this.sendMessage("search_template", payload, ({ payload, status }) => {
         if (!status) return resolve([]);
+        if (typeof payload === "string") return reject(payload);
 
         const result = payload.addrs.map((addrs) => {
           const templateAddrs = addrs.map((addr) => new ScAddr(addr));
@@ -317,7 +319,7 @@ export class ScClient {
     template: ScTemplate | string,
     params: Record<string, ScAddr>
   ) {
-    return new Promise<ScTemplateResult | null>(async (resolve) => {
+    return new Promise<ScTemplateResult | null>(async (resolve, reject) => {
       const templ =
         typeof template === "string"
           ? template
@@ -339,6 +341,8 @@ export class ScClient {
 
       this.sendMessage("generate_template", payload, ({ status, payload }) => {
         if (!status) resolve(null);
+        if (typeof payload === "string") return reject(payload);
+
         const addrs = payload.addrs.map((addr) => new ScAddr(addr));
         resolve(new ScTemplateResult(payload.aliases, addrs));
       });

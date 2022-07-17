@@ -8,37 +8,26 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         use: "ts-loader",
         exclude: /node_modules/,
-      },
-      {
-        test: /\.css$/,
-        use: ["style-loader", "css-loader"],
-      },
-      {
-        test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
-        use: [
-          {
-            loader: "file-loader",
-            options: {
-              name: "[name].[ext]",
-              outputPath: "fonts/",
-            },
-          },
-        ],
       },
     ],
   },
   plugins: [],
   resolve: {
-    extensions: [".tsx", ".ts", ".js", ".css"],
+    extensions: [".ts", ".js"],
   },
   externalsPresets: { node: true },
+  externals: {
+    bufferutil: "bufferutil",
+    "utf-8-validate": "utf-8-validate",
+  },
   output: {
     filename: "sc.js",
     path: path.resolve(process.cwd(), "build"),
     libraryTarget: "umd",
     library: "sc",
+    globalObject: "this",
   },
 };
