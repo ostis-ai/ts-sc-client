@@ -16,6 +16,14 @@ First of all one should create client instance. To do so:
     const client = new ScClient('https://your-knowledge-base-websocket-url');
 ```
 
+By default client is browser based, so it uses `window.WebSocket` class. When using with node js one may pass custom websocket instanse
+
+```ts
+    import { WebSocket } from "ws";
+
+    const client = new ScClient(new WebSocket('https://your-knowledge-base-websocket-url'));
+```
+
 Created instance provides the following methods:
 
 ## `client.addEventListener(evt: "close", "error", "open", callback): void`

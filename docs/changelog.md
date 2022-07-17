@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
  - correct webpack output path
 
+## [v0.2.0]
+### Added
+ - Support for custom websocket
+
 ## [v0.1.1]
 ### Changed
  - package.json main property
