@@ -4,7 +4,7 @@ import { ScConstruction } from "./ScConstruction";
 import { ScEvent } from "./ScEvent";
 import { ScEventParams } from "./ScEventParams";
 import { ScLinkContent, TContentString } from "./ScLinkContent";
-import { ScTemplate, ScTemplateTriple, ScTemplateValue } from "./ScTemplate";
+import { ScTemplate, ScTemplateValue } from "./ScTemplate";
 import { ScTemplateResult } from "./ScTemplateResult";
 import { ScType } from "./ScType";
 import {
@@ -49,15 +49,13 @@ type SocketEvent = "close" | "error" | "open";
 
 export class ScClient {
   private _eventID: number;
-  private _url: string;
   private _messageQueue: Array<() => void>;
   private _socket: WebSocket;
   private _callbacks: Record<number, TWSCallback>;
   private _events: Record<number, ScEvent>;
 
-  constructor(url: string) {
-    this._url = url;
-    this._socket = new WebSocket(this._url);
+  constructor(arg: string | WebSocket) {
+    this._socket = typeof arg === "string" ? new WebSocket(arg) : arg;
     this._socket.onmessage = this.onMessage;
     this._socket.onopen = this.sendMessagesFromQueue;
 
@@ -81,7 +79,7 @@ export class ScClient {
   };
 
   private onMessage = (messageEvent: MessageEvent) => {
-    const data = JSON.parse(messageEvent.data) as Response;
+    const data = JSON.parse(messageEvent.data.toString()) as Response;
     const cmdID = data.id;
     const callback = this._callbacks[cmdID];
 

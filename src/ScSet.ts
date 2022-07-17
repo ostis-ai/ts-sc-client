@@ -81,12 +81,11 @@ export class ScSet {
   }
 
   private async shouldAppend(addrs: ScAddr[]): Promise<boolean[] | undefined> {
-    const self = this;
     const types = await this._scClient?.checkElements(addrs);
     const result = types?.map((t: ScType) => {
       return !(
-        self._filterType &&
-        (self._filterType.value & t.value) !== self._filterType.value
+        this._filterType &&
+        (this._filterType.value & t.value) !== this._filterType.value
       );
     });
 
