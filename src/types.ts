@@ -75,14 +75,11 @@ interface ITripleAlias {
 
 export type TTripleItem = ITripleAddr | ITripleType | ITripleAlias;
 
-interface ISearchTemplatePayload {
-  templ: TTripleItem[][] | { type: string; value: string | number; } | string;
-  params: Record<string, number | string>;
-}
+type TSearchTemplatePayload = TTripleItem[][] | string;
 
 interface IGenerateTemplatePayload {
-  templ: TTripleItem[][] | { type: string; value: string | number; } | string;
-  params: Record<string, number | string>;
+  templ: TTripleItem[][] | string;
+  params: Record<string, number>;
 }
 
 interface ICreateEventPayload {
@@ -144,7 +141,7 @@ export type TKeynodesElementsArgs = Args<
 >;
 export type TTemplateSearchArgs = Args<
   "search_template",
-  ISearchTemplatePayload,
+  TSearchTemplatePayload,
   ISearchResult
 >;
 export type TTemplateGenerateArgs = Args<

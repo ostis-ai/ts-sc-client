@@ -7,24 +7,7 @@ import { ScLinkContent, TContentString } from "./ScLinkContent";
 import { ScTemplate, ScTemplateValue } from "./ScTemplate";
 import { ScTemplateResult } from "./ScTemplateResult";
 import { ScType } from "./ScType";
-import {
-  IEdge,
-  ILink,
-  INode,
-  TCheckElementsArgs,
-  TGetContentArgs,
-  TSetContentArgs,
-  TCreateElementsArgs,
-  TDeleteElementsArgs,
-  TWSCallback,
-  TAction,
-  TKeynodesElementsArgs,
-  TTemplateSearchArgs,
-  TTripleItem,
-  TTemplateGenerateArgs,
-  TCreateEventArgs,
-  TDeleteEventArgs,
-} from "./types";
+import { IEdge, ILink, INode, TCheckElementsArgs, TGetContentArgs, TSetContentArgs, TCreateElementsArgs, TDeleteElementsArgs, TWSCallback, TAction, TKeynodesElementsArgs, TTemplateSearchArgs, TTripleItem, TTemplateGenerateArgs, TCreateEventArgs, TDeleteEventArgs } from "./types";
 import { transformEdgeInfo } from "./utils";
 
 export interface Response<T = any> {
@@ -87,12 +70,7 @@ export class ScClient {
       const evt = this._events[cmdID];
 
       if (evt) {
-        evt.callback?.(
-          new ScAddr(data.payload[0]),
-          new ScAddr(data.payload[1]),
-          new ScAddr(data.payload[2]),
-          evt.id
-        );
+        evt.callback?.(new ScAddr(data.payload[0]), new ScAddr(data.payload[1]), new ScAddr(data.payload[2]), evt.id);
       } else {
         throw `Can't find callback for an event ${cmdID}`;
       }
@@ -118,11 +96,7 @@ export class ScClient {
   private sendMessage(...args: TCreateEventArgs): void;
   private sendMessage(...args: TDeleteEventArgs): void;
 
-  private sendMessage(
-    actionType: string,
-    payload: unknown,
-    callback: TWSCallback<any>
-  ): void {
+  private sendMessage(actionType: string, payload: unknown, callback: TWSCallback<any>): void {
     this._eventID++;
 
     if (this._callbacks[this._eventID]) {
@@ -227,24 +201,14 @@ export class ScClient {
       }));
 
       this.sendMessage("content", payload, (data) => {
-        const result = data.payload
-          .filter(
-            (res): res is { value: string | number; type: TContentString } =>
-              !!res.value
-          )
-          .map(
-            ({ type, value }) =>
-              new ScLinkContent(value, ScLinkContent.stringToType(type))
-          );
+        const result = data.payload.filter((res): res is { value: string | number; type: TContentString } => !!res.value).map(({ type, value }) => new ScLinkContent(value, ScLinkContent.stringToType(type)));
 
         resolve(result);
       });
     });
   }
 
-  public async resolveKeynodes<ParamId extends string>(
-    params: ReadonlyArray<KeynodeParam<ParamId>>
-  ) {
+  public async resolveKeynodes<ParamId extends string>(params: ReadonlyArray<KeynodeParam<ParamId>>) {
     return new Promise<Record<ParamId, ScAddr>>((resolve) => {
       const payload = params.map(({ id, type }) => {
         if (type.isValid()) {
@@ -288,45 +252,43 @@ export class ScClient {
     return { type: "alias", value, ...aliasObj };
   }
 
-  private processTemplate(template: ScTemplate | ScAddr | string) {
-    if (template instanceof ScAddr)
-      return { type: "addr", value: template.value };
-    else if (typeof template === "string" && template.search(/^([a-z]|_|\\d)*/))
-      return { type: "idtf", value: template };
-    else if (typeof template === "string")
-      return template;
-    else
-      return template.triples.map(({ source, edge, target }) => [
-        this.processTripleItem(source),
-        this.processTripleItem(edge),
-        this.processTripleItem(target),
-      ]);
+  private processTemplate(template: ScTemplate | ScAddr | string): TTripleItem[][] | { type: string; value: string | number } | string {
+    let templ;
+    if (template instanceof ScAddr) templ = { type: "addr", value: template.value };
+    else if (typeof template === "string" && template.search(/^([a-z]|_|\\d)*/)) templ = { type: "idtf", value: template };
+    else if (typeof template === "string") templ = template;
+    else templ = template.triples.map(({ source, edge, target }) => [this.processTripleItem(source), this.processTripleItem(edge), this.processTripleItem(target)]);
+
+    return templ;
   }
 
-  private processTemplateParams(params: Record<string, ScAddr | string>) {
+  private processTemplateParams(params: Record<string, ScAddr | string>): Record<string, string | number> {
     return Object.keys(params).reduce(
-        (acc, key) => {
+<<<<<<< HEAD
+      (acc, key) => ({
+        ...acc,
+        [key]: typeof params[key] === "string" ? <string>params[key] : (<ScAddr>params[key]).value,
+      }),
+      {} as Record<string, number | string>
+=======
+        function(acc, key) {
           const param = params[key];
           acc[key] = typeof param === "string" ? param : param.value;
           return acc;
         },
         {} as Record<string, number | string>
+>>>>>>> parent of 0fe3242 (Review fixes)
     );
   }
 
-  public async templateSearch(
-    template: ScTemplate | ScAddr | string,
-    params: Record<string, ScAddr | string> = {}
-  ) {
+  public async templateSearch(template: ScTemplate | string, params: Record<string, ScAddr | string> = {}) {
     return new Promise<ScTemplateResult[]>(async (resolve) => {
-      const templ = this.processTemplate(template);
-      const processedParams = this.processTemplateParams(params);
-      const payload = { templ, params: processedParams };
+      const payload = typeof template === "string" ? template : template.triples.map(({ source, edge, target }) => [this.processTripleItem(source), this.processTripleItem(edge), this.processTripleItem(target)]);
 
       this.sendMessage("search_template", payload, ({ payload, status }) => {
         if (!status) return resolve([]);
 
-        const result = payload.addrs.map((addrs) => {
+        const result = payload.addrs.map((addrs: any[]) => {
           const templateAddrs = addrs.map((addr) => new ScAddr(addr));
           return new ScTemplateResult(payload.aliases, templateAddrs);
         });
@@ -335,28 +297,30 @@ export class ScClient {
     });
   }
 
-  public async templateGenerate(
-    template: ScTemplate | ScAddr | string,
-    params: Record<string, ScAddr | string> = {}
-  ) {
+  public async templateGenerate(template: ScTemplate | string, params: Record<string, ScAddr>) {
     return new Promise<ScTemplateResult | null>(async (resolve) => {
-      const templ = this.processTemplate(template);
-      const processedParams = this.processTemplateParams(params);
+      const templ = typeof template === "string" ? template : template.triples.map(({ source, edge, target }) => [this.processTripleItem(source), this.processTripleItem(edge), this.processTripleItem(target)]);
 
-      const payload = { templ, params: processedParams };
+      const numericParams = Object.keys(params).reduce(
+        (acc, key) => ({
+          ...acc,
+          [key]: params[key].value,
+        }),
+        {} as Record<string, number>
+      );
+
+      const payload = { templ, params: numericParams };
 
       this.sendMessage("generate_template", payload, ({ status, payload }) => {
         if (!status) resolve(null);
-        const addrs = payload.addrs.map((addr) => new ScAddr(addr));
+        const addrs = payload.addrs.map((addr: number) => new ScAddr(addr));
         resolve(new ScTemplateResult(payload.aliases, addrs));
       });
     });
   }
 
   public async eventsCreate(eventOrEvents: ScEventParams[] | ScEventParams) {
-    const events = Array.isArray(eventOrEvents)
-      ? eventOrEvents
-      : [eventOrEvents];
+    const events = Array.isArray(eventOrEvents) ? eventOrEvents : [eventOrEvents];
 
     return new Promise<ScEvent[]>((resolve) => {
       const payload = {
@@ -380,9 +344,7 @@ export class ScClient {
   }
 
   public async eventsDestroy(eventIdOrIds: number[] | number) {
-    const eventIds = Array.isArray(eventIdOrIds)
-      ? eventIdOrIds
-      : [eventIdOrIds];
+    const eventIds = Array.isArray(eventIdOrIds) ? eventIdOrIds : [eventIdOrIds];
 
     return new Promise<void>((resolve) => {
       const payload = {
