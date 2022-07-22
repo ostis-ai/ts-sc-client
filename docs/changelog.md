@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.1]
+
+### Fixed
+
+- Remove code, not supported by current sc-machine
+
 ## [v0.2.0]
 
 ### Added
