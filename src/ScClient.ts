@@ -252,24 +252,6 @@ export class ScClient {
     return { type: "alias", value, ...aliasObj };
   }
 
-  private processTemplate(template: ScTemplate | ScAddr | string): TTripleItem[][] | { type: string; value: string | number } | string {
-    let templ;
-    if (template instanceof ScAddr) templ = { type: "addr", value: template.value };
-    else if (typeof template === "string" && template.search(/^([a-z]|_|\\d)*/)) templ = { type: "idtf", value: template };
-    else if (typeof template === "string") templ = template;
-    else templ = template.triples.map(({ source, edge, target }) => [this.processTripleItem(source), this.processTripleItem(edge), this.processTripleItem(target)]);
-
-    return templ;
-  }
-
-  private processTemplateParams(params: Record<string, ScAddr | string>): Record<string, string | number> {
-    return Object.keys(params).reduce(function (acc, key) {
-      const param = params[key];
-      acc[key] = typeof param === "string" ? param : param.value;
-      return acc;
-    }, {} as Record<string, number | string>);
-  }
-
   public async templateSearch(template: ScTemplate | string, params: Record<string, ScAddr | string> = {}) {
     return new Promise<ScTemplateResult[]>(async (resolve) => {
       const payload = typeof template === "string" ? template : template.triples.map(({ source, edge, target }) => [this.processTripleItem(source), this.processTripleItem(edge), this.processTripleItem(target)]);
