@@ -263,13 +263,11 @@ export class ScClient {
   }
 
   private processTemplateParams(params: Record<string, ScAddr | string>): Record<string, string | number> {
-    return Object.keys(params).reduce(
-      (acc, key) => ({
-        ...acc,
-        [key]: typeof params[key] === "string" ? <string>params[key] : (<ScAddr>params[key]).value,
-      }),
-      {} as Record<string, number | string>
-    );
+    return Object.keys(params).reduce(function (acc, key) {
+      const param = params[key];
+      acc[key] = typeof param === "string" ? param : param.value;
+      return acc;
+    }, {} as Record<string, number | string>);
   }
 
   public async templateSearch(template: ScTemplate | string, params: Record<string, ScAddr | string> = {}) {
