@@ -259,7 +259,7 @@ export class ScClient {
       this.sendMessage("search_template", payload, ({ payload, status }) => {
         if (!status) return resolve([]);
 
-        const result = payload.addrs.map((addrs: any[]) => {
+        const result = payload.addrs.map((addrs) => {
           const templateAddrs = addrs.map((addr) => new ScAddr(addr));
           return new ScTemplateResult(payload.aliases, templateAddrs);
         });
@@ -284,7 +284,7 @@ export class ScClient {
 
       this.sendMessage("generate_template", payload, ({ status, payload }) => {
         if (!status) resolve(null);
-        const addrs = payload.addrs.map((addr: number) => new ScAddr(addr));
+        const addrs = payload.addrs.map((addr) => new ScAddr(addr));
         resolve(new ScTemplateResult(payload.aliases, addrs));
       });
     });
