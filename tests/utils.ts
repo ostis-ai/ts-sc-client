@@ -7,6 +7,9 @@ const getMockAnswerPayload = (data: Request) => {
   if (data.type === "create_elements") {
     return data.payload.map((_: any, ind: number) => ind);
   }
+  if (data.type === "create_elements_by_scs") {
+    return data.payload.map((_: any, ind: boolean) => ind);
+  }
   if (data.type === "check_elements") {
     return data.payload.map((_: any, ind: number) => ind);
   }

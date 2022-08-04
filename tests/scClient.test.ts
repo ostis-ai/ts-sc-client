@@ -86,6 +86,22 @@ describe("ScClient", () => {
     );
   });
 
+  test("createElementsBySCs", async () => {
+    const res = await client.createElementsBySCs(["my_class -> node1;;", "my_class -> ;;"]);
+
+    expect(res).toHaveLength(2);
+
+    await expect(server).toReceiveMessage(
+        expect.objectContaining({
+          type: "create_elements_by_scs",
+          payload: expect.arrayContaining([
+            "my_class -> node1;;",
+            "my_class -> ;;",
+          ]),
+        })
+    );
+  });
+
   test("deleteElements", async () => {
     const fakeNodeAddr1 = new ScAddr(123);
     const fakeNodeAddr2 = new ScAddr(12223);
