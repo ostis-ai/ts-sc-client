@@ -112,6 +112,7 @@ export interface Response<
 
 export type TAction =
   | "create_elements"
+  | "create_elements_by_scs"
   | "check_elements"
   | "delete_elements"
   | "search_template"
@@ -155,6 +156,11 @@ export type TCreateElementsArgs = Args<
   "create_elements",
   Array<ILink | IEdge | INode>,
   number[]
+>;
+export type TCreateElementsBySCsArgs = Args<
+  "create_elements_by_scs",
+  Array<string>,
+  boolean[]
 >;
 export type TSetContentArgs = Args<
   "content",

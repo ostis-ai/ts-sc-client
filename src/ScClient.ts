@@ -7,7 +7,7 @@ import { ScLinkContent, TContentString } from "./ScLinkContent";
 import { ScTemplate, ScTemplateValue } from "./ScTemplate";
 import { ScTemplateResult } from "./ScTemplateResult";
 import { ScType } from "./ScType";
-import { IEdge, ILink, INode, TCheckElementsArgs, TGetContentArgs, TSetContentArgs, TCreateElementsArgs, TDeleteElementsArgs, TWSCallback, TAction, TKeynodesElementsArgs, TTemplateSearchArgs, TTripleItem, TTemplateGenerateArgs, TCreateEventArgs, TDeleteEventArgs } from "./types";
+import { IEdge, ILink, INode, TCheckElementsArgs, TGetContentArgs, TSetContentArgs, TCreateElementsArgs, TCreateElementsBySCsArgs, TDeleteElementsArgs, TWSCallback, TAction, TKeynodesElementsArgs, TTemplateSearchArgs, TTripleItem, TTemplateGenerateArgs, TCreateEventArgs, TDeleteEventArgs } from "./types";
 import { transformEdgeInfo } from "./utils";
 
 export interface Response<T = any> {
@@ -87,6 +87,7 @@ export class ScClient {
 
   private sendMessage(...args: TDeleteElementsArgs): void;
   private sendMessage(...args: TCreateElementsArgs): void;
+  private sendMessage(...args: TCreateElementsBySCsArgs): void;
   private sendMessage(...args: TCheckElementsArgs): void;
   private sendMessage(...args: TGetContentArgs): void;
   private sendMessage(...args: TSetContentArgs): void;
@@ -165,6 +166,14 @@ export class ScClient {
 
       this.sendMessage("create_elements", payload, (data) => {
         resolve(data.payload.map((a) => new ScAddr(a)));
+      });
+    });
+  }
+
+  public async createElementsBySCs(scsText: string[]) {
+    return new Promise<boolean[]>((resolve) => {
+      this.sendMessage("create_elements_by_scs", scsText, (data) => {
+        resolve(data.payload);
       });
     });
   }
