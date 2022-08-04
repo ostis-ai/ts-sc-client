@@ -89,6 +89,19 @@ Create specified in ScConstruction elements.
     const res = await client.createElements(construction);
 ```
 
+## `client.createElementsBySCs(scsText: string[]): boolean[]`
+
+Create specified in ScConstruction elements by SCs text. Returned boolean represents whether SCs text processing was 
+successfull.
+
+```ts
+    import { client } from "../path-to-client";
+
+    const res = await client.createElementsBySCs(
+        ["my_class -> node1;;", "node1 => relation: node2;;"]
+    );
+```
+
 ## `client.deleteElements(addrs: ScAddr[]): boolean`
 
 Delete specified elements. Returned boolean represents whether deleting was successfull.
