@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add opportunity to create sc-elements by SCs-text
+
 ## [v0.2.1]
 
 ### Fixed
