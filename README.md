@@ -146,6 +146,39 @@ With this method you can get link content.
     const res = await client.getLinkContents([nodeAddr]);
 ```
 
+## `client.getLinksByContents(contents: string[]): ScAddr[][]`
+
+Find links by its contents.
+
+```ts
+    import { client } from "../path-to-client";
+
+    const res = await client.getLinksByContents(["concept_class"]);
+    res[0] // link array where link contain content "concept_class"
+```
+
+## `client.getLinksByContentSubstrings(contents: string[]): ScAddr[][]`
+
+Find links by its content substrings.
+
+```ts
+    import { client } from "../path-to-client";
+
+    const res = await client.getLinksByContentSubstrings(["con"]);
+    res[0] // link array where link contain content with substring "con"
+```
+
+## `client.getStringsBySubstrings(contents: string[]): string[][]`
+
+Find strings by its substrings.
+
+```ts
+    import { client } from "../path-to-client";
+
+    const res = await client.getStringsBySubstrings(["con"]);
+    res[0] // string array that contain content substring "con"
+```
+
 ## `client.resolveKeynodes<T = string>(Array<{idtf: T, type: ScType}>): Record<T, ScAddr>`
 
 Find or resolve keynodes. When type is valid, element will be resolved by id or found otherwise.
