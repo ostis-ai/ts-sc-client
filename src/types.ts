@@ -18,6 +18,21 @@ interface IGetContentPayload {
   addr: number;
 }
 
+interface IGetLinksByContentsPayload {
+  command: "find";
+  data: string | number;
+}
+
+interface IGetLinksByContentSubstringsPayload {
+  command: "find_links_by_substr";
+  data: string | number;
+}
+
+interface IGetStringsBySubstringsPayload {
+  command: "find_strings_by_substr";
+  data: string | number;
+}
+
 interface IFindKeynode {
   command: "find";
   idtf: string;
@@ -171,4 +186,16 @@ export type TGetContentArgs = Args<
   "content",
   Array<IGetContentPayload>,
   IContentResult[]
+>;
+
+export type TGetLinksArgs = Args<
+  "content",
+  Array<IGetLinksByContentsPayload | IGetLinksByContentSubstringsPayload>,
+  number[][]
+>;
+
+export type TGetStringsArgs = Args<
+  "content",
+  Array<IGetStringsBySubstringsPayload>,
+  string[][]
 >;

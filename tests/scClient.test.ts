@@ -185,6 +185,89 @@ describe("ScClient", () => {
     );
   });
 
+  test("getLinksByContents", async () => {
+    const linkContent1 = "test_content1";
+    const linkContent2 = "test_content2";
+
+    const res = await client.getLinksByContents([linkContent1, linkContent2]);
+
+    expect(res).toHaveLength(2);
+    expect(res[0][0]).toBeInstanceOf(ScAddr);
+    expect(res[1][0]).toBeInstanceOf(ScAddr);
+
+    res.forEach((resItem) => resItem.forEach((resItem) => expect(resItem).toBeInstanceOf(ScAddr)));
+
+    await expect(server).toReceiveMessage(
+        expect.objectContaining({
+          type: "content",
+          payload: expect.arrayContaining([
+            {
+              command: "find",
+              data: linkContent1,
+            },
+            {
+              command: "find",
+              data: linkContent2,
+            },
+          ]),
+        })
+    );
+  });
+
+  test("getLinksByContentSubstrings", async () => {
+    const linkContent1 = "con";
+    const linkContent2 = "content";
+
+    const res = await client.getLinksByContentSubstrings([linkContent1, linkContent2]);
+
+    expect(res).toHaveLength(2);
+    expect(res[0][0]).toBeInstanceOf(ScAddr);
+    expect(res[1][0]).toBeInstanceOf(ScAddr);
+
+    res.forEach((resItem) => resItem.forEach((resItem) => expect(resItem).toBeInstanceOf(ScAddr)));
+
+    await expect(server).toReceiveMessage(
+        expect.objectContaining({
+          type: "content",
+          payload: expect.arrayContaining([
+            {
+              command: "find_links_by_substr",
+              data: linkContent1,
+            },
+            {
+              command: "find_links_by_substr",
+              data: linkContent2,
+            },
+          ]),
+        })
+    );
+  });
+
+  test("getStringsBySubstrings", async () => {
+    const linkContent1 = "test_content1";
+    const linkContent2 = "test_content2";
+
+    const res = await client.getLinksContentsByContentSubstrings([linkContent1, linkContent2]);
+
+    expect(res).toHaveLength(2);
+
+    await expect(server).toReceiveMessage(
+        expect.objectContaining({
+          type: "content",
+          payload: expect.arrayContaining([
+            {
+              command: "find_strings_by_substr",
+              data: linkContent1,
+            },
+            {
+              command: "find_strings_by_substr",
+              data: linkContent2,
+            },
+          ]),
+        })
+    );
+  });
+
   test("resolveKeynodes", async () => {
     const id1 = "id1";
     const id2 = "id2";
