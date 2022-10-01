@@ -61,6 +61,7 @@ export const setupServer = (server: WS) => {
           status: true,
           event: false,
           payload: getMockAnswerPayload(data),
+          errors: [],
         };
 
         server.send(dataToSend);
@@ -70,6 +71,7 @@ export const setupServer = (server: WS) => {
             status: true,
             event: true,
             payload: [1, 2, 3],
+            errors: [],
           });
         }
       }

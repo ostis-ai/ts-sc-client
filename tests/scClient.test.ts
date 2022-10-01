@@ -532,7 +532,7 @@ describe("ScClient", () => {
 
     const res = await client.eventsDestroy(eventIds);
 
-    expect(res).toBe(undefined);
+    expect(res).toBe(true);
 
     await expect(server).toReceiveMessage(
       expect.objectContaining({

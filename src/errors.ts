@@ -2,8 +2,8 @@ const commonError = (error: string, msg: string) => {
   throw `${error}: ${msg}`;
 };
 
-export const knowledgeBaseError = (msg: string) => {
-  commonError("Invalid state of knowledge base", msg);
+export const serverError = (msg: string) => {
+  commonError("Invalid state of sc-memory", msg);
 };
 
 export const invalidValue = (msg: string) => {

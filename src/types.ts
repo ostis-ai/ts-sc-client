@@ -117,12 +117,14 @@ interface IGenerateResult {
 
 export interface Response<
   Payload extends unknown = unknown,
-  Event extends boolean = boolean
+  Event extends boolean = boolean,
+  Errors extends unknown = unknown
 > {
   id: number;
   status: boolean;
   event: Event;
   payload: Payload;
+  errors: Errors;
 }
 
 export type TAction =
@@ -138,8 +140,9 @@ export type TAction =
 
 export type TWSCallback<
   Payload extends unknown = unknown,
-  Event extends boolean = boolean
-> = (data: Response<Payload, Event>) => void;
+  Event extends boolean = boolean,
+  Errors extends unknown = unknown
+> = (data: Response<Payload, Event, Errors>) => void;
 
 type Args<
   Action extends TAction,
