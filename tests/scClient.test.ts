@@ -488,6 +488,17 @@ describe("ScClient", () => {
 
     const res = await client.eventsCreate([evtParams1, evtParams2]);
 
+    const construction = new ScConstruction();
+
+    construction.createEdge(
+      ScType.EdgeAccessConstPosPerm,
+      fakeNodeAddr2,
+      fakeNodeAddr1
+    );
+
+    const edgeAddr = await client.createElements(construction);
+    await client.deleteElements(edgeAddr);
+
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScEvent));
 
     expect(eventCallback).toHaveBeenCalledWith(
@@ -504,11 +515,11 @@ describe("ScClient", () => {
           create: expect.arrayContaining([
             {
               type: ScEventType.AddIngoingEdge,
-              addr: fakeAddr1.value,
+              addr: fakeNodeAddr1.value,
             },
             {
               type: ScEventType.RemoveIngoingEdge,
-              addr: fakeAddr2.value,
+              addr: fakeNodeAddr2.value,
             },
           ]),
         }),
