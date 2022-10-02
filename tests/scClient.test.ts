@@ -30,11 +30,16 @@ describe("ScClient", () => {
   });
 
   test("createElements", async () => {
+    const preparationConstruction = new ScConstruction();
+    preparationConstruction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(preparationConstruction);
+    await server.nextMessage;
+
     const myNode = "_node";
     const myLink = "_link";
 
     const linkContent = "my_content";
-    const fakeNodeAddr = new ScAddr(123);
+    const fakeNodeAddr = addrs[0];
 
     const construction = new ScConstruction();
 
@@ -103,8 +108,14 @@ describe("ScClient", () => {
   });
 
   test("deleteElements", async () => {
-    const fakeNodeAddr1 = new ScAddr(123);
-    const fakeNodeAddr2 = new ScAddr(12223);
+    const construction = new ScConstruction();
+    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConst)
+    const addrs = await client.createElements(construction);
+    await server.nextMessage;
+
+    const fakeNodeAddr1 = addrs[0];
+    const fakeNodeAddr2 = addrs[1];
 
     const res = await client.deleteElements([fakeNodeAddr1, fakeNodeAddr2]);
 
@@ -122,8 +133,14 @@ describe("ScClient", () => {
   });
 
   test("checkElements", async () => {
-    const fakeNodeAddr1 = new ScAddr(123);
-    const fakeNodeAddr2 = new ScAddr(12223);
+    const construction = new ScConstruction();
+    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConst)
+    const addrs = await client.createElements(construction);
+    await server.nextMessage;
+
+    const fakeNodeAddr1 = addrs[0];
+    const fakeNodeAddr2 = addrs[1];
 
     const res = await client.checkElements([fakeNodeAddr1, fakeNodeAddr2]);
 
@@ -142,8 +159,13 @@ describe("ScClient", () => {
   });
 
   test("setContent", async () => {
-    const content = "my_content";
-    const linkContent = new ScLinkContent(content, ScLinkContentType.String);
+    const construction = new ScConstruction();
+    construction.createLink(ScType.LinkConst, new ScLinkContent("old_content", ScLinkContentType.String));
+    const addrs = await client.createElements(construction);
+    await server.nextMessage;
+
+    const content = "new_content";
+    const linkContent = new ScLinkContent(content, ScLinkContentType.String, addrs[0]);
 
     const res = await client.setLinkContents([linkContent]);
 
@@ -155,6 +177,7 @@ describe("ScClient", () => {
         type: "content",
         payload: expect.arrayContaining([
           {
+            addr: addrs[0].value,
             command: "set",
             type: "string",
             data: content,
@@ -165,9 +188,15 @@ describe("ScClient", () => {
   });
 
   test("getContent", async () => {
-    const fakeNodeAddr = new ScAddr(123);
+    const content = "my_content";
+    const construction = new ScConstruction();
+    construction.createLink(ScType.LinkConst, new ScLinkContent(content, ScLinkContentType.String));
+    const addrs = await client.createElements(construction);
+    await server.nextMessage;
 
-    const res = await client.getLinkContents([fakeNodeAddr]);
+    const nodeAddr = addrs[0];
+
+    const res = await client.getLinkContents([nodeAddr]);
 
     expect(res).toHaveLength(1);
     expect(res[0]).toBeInstanceOf(ScLinkContent);
@@ -178,7 +207,7 @@ describe("ScClient", () => {
         payload: expect.arrayContaining([
           {
             command: "get",
-            addr: fakeNodeAddr.value,
+            addr: nodeAddr.value,
           },
         ]),
       })
@@ -296,8 +325,14 @@ describe("ScClient", () => {
   });
 
   test("templateSearch", async () => {
-    const fakeAddr1 = new ScAddr(123);
-    const fakeAddr2 = new ScAddr(1232333);
+    const construction = new ScConstruction();
+    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConst)
+    const addrs = await client.createElements(construction);
+    await server.nextMessage;
+
+    const fakeNodeAddr1 = addrs[0];
+    const fakeNodeAddr2 = addrs[1];
 
     const circuitDialogAlias = "_circuit_dialog";
     const dialog = "_dialog";
@@ -305,11 +340,11 @@ describe("ScClient", () => {
     const template = new ScTemplate();
 
     template.tripleWithRelation(
-      fakeAddr1,
+      fakeNodeAddr1,
       ScType.EdgeDCommonVar,
       [ScType.NodeVarStruct, circuitDialogAlias],
       ScType.EdgeAccessVarPosPerm,
-      fakeAddr2
+      fakeNodeAddr2
     );
     template.triple(circuitDialogAlias, ScType.EdgeAccessVarPosPerm, [
       ScType.NodeVar,
@@ -318,6 +353,8 @@ describe("ScClient", () => {
 
     const res = await client.templateSearch(template);
 
+    expect(res).toBeTruthy();
+
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScTemplateResult));
 
     await expect(server).toReceiveMessage(
@@ -325,7 +362,7 @@ describe("ScClient", () => {
         type: "search_template",
         payload: expect.arrayContaining([
           expect.arrayContaining([
-            { type: "addr", value: fakeAddr1.value },
+            { type: "addr", value: fakeNodeAddr1.value },
             {
               alias: expect.any(String),
               type: "type",
@@ -338,7 +375,7 @@ describe("ScClient", () => {
             },
           ]),
           expect.arrayContaining([
-            { type: "addr", value: fakeAddr2.value },
+            { type: "addr", value: fakeNodeAddr2.value },
             { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
             { type: "alias", value: expect.any(String) },
           ]),
@@ -353,10 +390,16 @@ describe("ScClient", () => {
   });
 
   test("templateGenerate", async () => {
-    const fakeAddr1 = new ScAddr(123);
-    const fakeAddr2 = new ScAddr(1232333);
+    const construction = new ScConstruction();
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(construction);
+    await server.nextMessage;
 
-    const fakeParamAddr = new ScAddr(777);
+    const fakeNodeAddr1 = addrs[0];
+    const fakeNodeAddr2 = addrs[1];
+    const fakeParamAddr = addrs[2];
 
     const circuitDialogAlias = "_circuit_dialog";
     const dialog = "_dialog";
@@ -364,11 +407,11 @@ describe("ScClient", () => {
     const template = new ScTemplate();
 
     template.tripleWithRelation(
-      fakeAddr1,
+      fakeNodeAddr1,
       ScType.EdgeDCommonVar,
       [ScType.NodeVarStruct, circuitDialogAlias],
       ScType.EdgeAccessVarPosPerm,
-      fakeAddr2
+      fakeNodeAddr2
     );
     template.triple(circuitDialogAlias, ScType.EdgeAccessVarPosPerm, [
       ScType.NodeVar,
@@ -389,7 +432,7 @@ describe("ScClient", () => {
         payload: expect.objectContaining({
           templ: expect.arrayContaining([
             expect.arrayContaining([
-              { type: "addr", value: fakeAddr1.value },
+              { type: "addr", value: fakeNodeAddr1.value },
               {
                 alias: expect.any(String),
                 type: "type",
@@ -402,7 +445,7 @@ describe("ScClient", () => {
               },
             ]),
             expect.arrayContaining([
-              { type: "addr", value: fakeAddr2.value },
+              { type: "addr", value: fakeNodeAddr2.value },
               { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
               { type: "alias", value: expect.any(String) },
             ]),
@@ -423,16 +466,22 @@ describe("ScClient", () => {
   test("eventsCreate", async () => {
     const eventCallback = jest.fn();
 
-    const fakeAddr1 = new ScAddr(123);
-    const fakeAddr2 = new ScAddr(12311);
+    const preparationConstruction = new ScConstruction();
+    preparationConstruction.createNode(ScType.NodeConst);
+    preparationConstruction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(preparationConstruction);
+    await server.nextMessage;
+
+    const fakeNodeAddr1 = addrs[0];
+    const fakeNodeAddr2 = addrs[1];
 
     const evtParams1 = new ScEventParams(
-      fakeAddr1,
+      fakeNodeAddr1,
       ScEventType.AddIngoingEdge,
       eventCallback
     );
     const evtParams2 = new ScEventParams(
-      fakeAddr2,
+      fakeNodeAddr2,
       ScEventType.RemoveIngoingEdge,
       () => void 0
     );
