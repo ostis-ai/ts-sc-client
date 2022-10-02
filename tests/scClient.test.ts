@@ -302,7 +302,7 @@ describe("ScClient", () => {
     const id2 = "id2";
 
     const keynodes = [
-      { id: id1, type: ScType.EdgeDCommon },
+      { id: id1, type: ScType.NodeConst },
       { id: id2, type: new ScType() },
     ];
 
@@ -317,7 +317,7 @@ describe("ScClient", () => {
       expect.objectContaining({
         type: "keynodes",
         payload: expect.arrayContaining([
-          { command: "resolve", idtf: id1, elType: ScType.EdgeDCommon.value },
+          { command: "resolve", idtf: id1, elType: ScType.NodeConst.value },
           { command: "find", idtf: id2 },
         ]),
       })
