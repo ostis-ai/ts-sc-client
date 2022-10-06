@@ -7,7 +7,7 @@ import { ScLinkContent, TContentString } from "./ScLinkContent";
 import { ScTemplate, ScTemplateValue } from "./ScTemplate";
 import { ScTemplateResult } from "./ScTemplateResult";
 import { ScType } from "./ScType";
-import { IEdge, ILink, INode, TCheckElementsArgs, TGetContentArgs, TSetContentArgs, TCreateElementsArgs, TCreateElementsBySCsArgs, TDeleteElementsArgs, TWSCallback, TAction, TKeynodesElementsArgs, TTemplateSearchArgs, TTripleItem, TTemplateGenerateArgs, TCreateEventArgs, TDeleteEventArgs } from "./types";
+import { IEdge, ILink, INode, TCheckElementsArgs, TGetContentArgs, TSetContentArgs, TGetLinksArgs, TGetStringsArgs, TCreateElementsArgs, TCreateElementsBySCsArgs, TDeleteElementsArgs, TWSCallback, TAction, TKeynodesElementsArgs, TTemplateSearchArgs, TTripleItem, TTemplateGenerateArgs, TCreateEventArgs, TDeleteEventArgs } from "./types";
 import { transformEdgeInfo } from "./utils";
 
 export interface Response<T = any> {
@@ -91,6 +91,8 @@ export class ScClient {
   private sendMessage(...args: TCheckElementsArgs): void;
   private sendMessage(...args: TGetContentArgs): void;
   private sendMessage(...args: TSetContentArgs): void;
+  private sendMessage(...args: TGetLinksArgs): void;
+  private sendMessage(...args: TGetStringsArgs): void;
   private sendMessage(...args: TKeynodesElementsArgs): void;
   private sendMessage(...args: TTemplateSearchArgs): void;
   private sendMessage(...args: TTemplateGenerateArgs): void;
@@ -213,6 +215,45 @@ export class ScClient {
         const result = data.payload.filter((res): res is { value: string | number; type: TContentString } => !!res.value).map(({ type, value }) => new ScLinkContent(value, ScLinkContent.stringToType(type)));
 
         resolve(result);
+      });
+    });
+  }
+
+  public async getLinksByContents(contents: string[]) {
+    return new Promise<ScAddr[][]>((resolve) => {
+      const payload = contents.map((content) => ({
+        command: "find" as const,
+        data: content,
+      }));
+
+      this.sendMessage("content", payload, (data) => {
+        resolve(data.payload.map((slice) => slice.map((addr) => new ScAddr(addr))));
+      });
+    });
+  }
+
+  public async getLinksByContentSubstrings(contents: string[]) {
+    return new Promise<ScAddr[][]>((resolve) => {
+      const payload = contents.map((content) => ({
+        command: "find_links_by_substr" as const,
+        data: content,
+      }));
+
+      this.sendMessage("content", payload, (data) => {
+        resolve(data.payload.map((slice) => slice.map((addr) => new ScAddr(addr))));
+      });
+    });
+  }
+
+  public async getLinksContentsByContentSubstrings(contents: string[]) {
+    return new Promise<string[][]>((resolve) => {
+      const payload = contents.map((content) => ({
+        command: "find_strings_by_substr" as const,
+        data: content,
+      }));
+
+      this.sendMessage("content", payload, (data) => {
+        resolve(data.payload);
       });
     });
   }

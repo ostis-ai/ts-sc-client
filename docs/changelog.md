@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Get strings by substrings
+- Get links by contents, content substrings
 - Add opportunity to create sc-elements by SCs-text
 
 ## [v0.2.1]

@@ -14,8 +14,20 @@ const getMockAnswerPayload = (data: Request) => {
     return data.payload.map((_: any, ind: number) => ind);
   }
   if (data.type === "content") {
-    return data.payload.map(({ command }: { command: "set" | "get" }) =>
-      command === "set" ? true : { value: "12345", type: "string" }
+    return data.payload.map(({ command }: { command: "set" | "get" | "find" | "find_links_by_substr" | "find_strings_by_substr" }) => {
+        if (command === "set") {
+          return true;
+        }
+        if (command === "get") {
+          return {value: "12345", type: "string"};
+        }
+        if (command === "find_strings_by_substr") {
+          return ["test_string"];
+        }
+        else {
+          return [12345];
+        }
+      }
     );
   }
   if (data.type === "keynodes") {
