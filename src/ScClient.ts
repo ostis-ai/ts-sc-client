@@ -1,4 +1,4 @@
-import {invalidValue, serverError} from "./errors";
+import { invalidValue } from "./errors";
 import { ScAddr } from "./ScAddr";
 import { ScConstruction } from "./ScConstruction";
 import { ScEvent } from "./ScEvent";
@@ -7,7 +7,7 @@ import { ScLinkContent, TContentString } from "./ScLinkContent";
 import { ScTemplate, ScTemplateValue } from "./ScTemplate";
 import { ScTemplateResult } from "./ScTemplateResult";
 import { ScType } from "./ScType";
-import { IEdge, ILink, INode, TCheckElementsArgs, TGetContentArgs, TSetContentArgs, TGetLinksArgs, TGetStringsArgs, TCreateElementsArgs, TCreateElementsBySCsArgs, TDeleteElementsArgs, TWSCallback, TAction, TKeynodesElementsArgs, TTemplateSearchArgs, TTripleItem, TTemplateGenerateArgs, TCreateEventArgs, TDeleteEventArgs } from "./types";
+import { ScError, IEdge, ILink, INode, TCheckElementsArgs, TGetContentArgs, TSetContentArgs, TGetLinksArgs, TGetStringsArgs, TCreateElementsArgs, TCreateElementsBySCsArgs, TDeleteElementsArgs, TWSCallback, TAction, TKeynodesElementsArgs, TTemplateSearchArgs, TTripleItem, TTemplateGenerateArgs, TCreateEventArgs, TDeleteEventArgs } from "./types";
 import { transformEdgeInfo } from "./utils";
 
 export interface Response<T = any> {
@@ -15,12 +15,7 @@ export interface Response<T = any> {
   status: boolean;
   event: boolean;
   payload: T;
-  errors: string | Error[];
-}
-
-export interface Error {
-  ref: number;
-  message: string;
+  errors: ScError;
 }
 
 export interface Request<T = any> {
@@ -128,14 +123,13 @@ export class ScClient {
     sendData();
   }
 
-  private formSendAnswer(resolve: (arg: any) => void, reject: (arg: any) => void, success: any, errors?: any) {
-    if (errors.length == 0) {
+  private resolveOrReject(resolve: (arg: any) => void, reject: (arg: string | string[]) => void, success: any, errors: ScError) {
+    if (errors.length === 0) {
       return resolve(success);
     }
 
-    let errorsArray = [];
-    errors.forEach((error: Error) => { errorsArray[error.ref] = error.message; });
-    return reject(errors);
+    const transformedErrors = typeof errors === 'string' ? errors : errors.map(({message}) => message);
+    return reject(transformedErrors);
   }
 
   public async checkElements(addrs: ScAddr[]) {
@@ -146,7 +140,7 @@ export class ScClient {
 
       this.sendMessage("check_elements", payload, ({ payload, errors }) => {
         const result = payload.map((type: number) => new ScType(type));
-        this.formSendAnswer(resolve, reject, result, errors);
+        this.resolveOrReject(resolve, reject, result, errors);
       });
     });
   }
@@ -184,7 +178,7 @@ export class ScClient {
 
       this.sendMessage("create_elements", payload, ({ payload, errors }) => {
         const result = payload.map((a) => new ScAddr(a));
-        this.formSendAnswer(resolve, reject, result, errors);
+        this.resolveOrReject(resolve, reject, result, errors);
       });
     });
   }
@@ -192,7 +186,7 @@ export class ScClient {
   public async createElementsBySCs(scsText: string[]) {
     return new Promise<boolean[]>((resolve, reject) => {
       this.sendMessage("create_elements_by_scs", scsText, ({ payload, errors }) => {
-        this.formSendAnswer(resolve, reject, payload, errors);
+        this.resolveOrReject(resolve, reject, payload, errors);
       });
     });
   }
@@ -201,7 +195,7 @@ export class ScClient {
     return new Promise<boolean>((resolve, reject) => {
       const payload = addrs.map(({ value }) => value);
       this.sendMessage("delete_elements", payload, ({ status, errors }) => {
-        this.formSendAnswer(resolve, reject, status, errors);
+        this.resolveOrReject(resolve, reject, status, errors);
       });
     });
   }
@@ -216,7 +210,7 @@ export class ScClient {
       }));
 
       this.sendMessage("content", payload, ({ payload, errors }) => {
-        this.formSendAnswer(resolve, reject, payload, errors);
+        this.resolveOrReject(resolve, reject, payload, errors);
       });
     });
   }
@@ -230,7 +224,7 @@ export class ScClient {
 
       this.sendMessage("content", payload, ({ payload, errors }) => {
         const result = payload.filter((res): res is { value: string | number; type: TContentString } => !!res.value).map(({ type, value }) => new ScLinkContent(value, ScLinkContent.stringToType(type)));
-        this.formSendAnswer(resolve, reject, result, errors);
+        this.resolveOrReject(resolve, reject, result, errors);
       });
     });
   }
@@ -244,7 +238,7 @@ export class ScClient {
 
       this.sendMessage("content", payload, ({ payload, errors }) => {
         const result = payload.map((slice) => slice.map((addr) => new ScAddr(addr)));
-        this.formSendAnswer(resolve, reject, result, errors);
+        this.resolveOrReject(resolve, reject, result, errors);
       });
     });
   }
@@ -258,7 +252,7 @@ export class ScClient {
 
       this.sendMessage("content", payload, ({ payload, errors }) => {
         const result = payload.map((slice) => slice.map((addr) => new ScAddr(addr)));
-        this.formSendAnswer(resolve, reject, result, errors);
+        this.resolveOrReject(resolve, reject, result, errors);
       });
     });
   }
@@ -271,7 +265,7 @@ export class ScClient {
       }));
 
       this.sendMessage("content", payload, ({ payload, errors }) => {
-        this.formSendAnswer(resolve, reject, payload, errors);
+        this.resolveOrReject(resolve, reject, payload, errors);
       });
     });
   }
@@ -304,7 +298,7 @@ export class ScClient {
           {} as Record<ParamId, ScAddr>
         );
 
-        this.formSendAnswer(resolve, reject, result, errors);
+        this.resolveOrReject(resolve, reject, result, errors);
       });
     });
   }
@@ -331,7 +325,7 @@ export class ScClient {
           const templateAddrs = addrs.map((addr) => new ScAddr(addr));
           return new ScTemplateResult(payload.aliases, templateAddrs);
         });
-        this.formSendAnswer(resolve, reject, result, errors);
+        this.resolveOrReject(resolve, reject, result, errors);
       });
     });
   }
@@ -354,7 +348,7 @@ export class ScClient {
         if (!status) resolve(null);
         const addrs = payload.addrs.map((addr) => new ScAddr(addr));
         const result = new ScTemplateResult(payload.aliases, addrs);
-        this.formSendAnswer(resolve, reject, result, errors);
+        this.resolveOrReject(resolve, reject, result, errors);
       });
     });
   }
@@ -378,7 +372,7 @@ export class ScClient {
           return newEvt;
         });
 
-        this.formSendAnswer(resolve, reject, result, errors);
+        this.resolveOrReject(resolve, reject, result, errors);
       });
     });
   }
@@ -395,7 +389,7 @@ export class ScClient {
         eventIds.forEach((eventId) => {
           delete this._events[eventId];
         });
-        this.formSendAnswer(resolve, reject, status, errors);
+        this.resolveOrReject(resolve, reject, status, errors);
       });
     });
   }

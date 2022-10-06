@@ -92,7 +92,7 @@ describe("ScClient", () => {
   });
 
   test("createElementsBySCs", async () => {
-    const res = await client.createElementsBySCs(["my_class -> node1;;", "my_class -> ;;"]);
+    const res = await client.createElementsBySCs(["my_class -> node1;;", "my_class -> rrel_1: node1;;"]);
 
     expect(res).toHaveLength(2);
 
@@ -101,7 +101,21 @@ describe("ScClient", () => {
           type: "create_elements_by_scs",
           payload: expect.arrayContaining([
             "my_class -> node1;;",
-            "my_class -> ;;",
+            "my_class -> rrel_1: node1;;",
+          ]),
+        })
+    );
+  });
+
+  test("createElementsBySCsUnsuccessful", async () => {
+    client.createElementsBySCs(["->;;"])
+        .then(null).catch((errors) => { expect(errors).toHaveLength(1); });
+
+    await expect(server).toReceiveMessage(
+        expect.objectContaining({
+          type: "create_elements_by_scs",
+          payload: expect.arrayContaining([
+            "->;;",
           ]),
         })
     );
