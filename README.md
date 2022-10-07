@@ -208,12 +208,14 @@ Find or resolve keynodes. When type is valid, element will be resolved by id or 
 
 ## `client.templateSearch(templ: ScTemplate): ScTemplateResult[]`
 
-Search constructions by specified template. When multiple templates are found each array elem represents search result 
+Search constructions by specified template. When multiple templates are found each array elem represents search result.
+ScTemplates params may contain pairs with address of sc-elements or its system identifiers.
 
 ```ts
     import { ScAddr, ScTemplate } from "ts-sc-client";
     import { client } from "../path-to-client";
 
+    const fakeDialog = new ScAddr(15545);
     const fakeAddr1 = new ScAddr(123);
     const fakeAddr2 = new ScAddr(1232333);
 
@@ -234,7 +236,52 @@ Search constructions by specified template. When multiple templates are found ea
       dialog,
     ]);
 
-    const res = await client.templateSearch(template);
+    const params = {
+        [circuitDialogAlias]: fakeDialog,
+    };
+
+    const res = await client.templateSearch(template, params);
+```
+
+Search constructions by specified template address.
+
+```ts
+    import { ScAddr, ScTemplate } from "ts-sc-client";
+    import { client } from "../path-to-client";
+
+    const fakeTemplate = new ScAddr(15545);
+    
+    const params = {
+        [circuitDialogAlias]: fakeDialog,
+    };
+
+    const res = await client.templateSearch(fakeTemplate, params);
+```
+
+Search constructions by specified template system identifier.
+
+```ts
+    import { ScAddr, ScTemplate } from "ts-sc-client";
+    import { client } from "../path-to-client";
+    
+    const params = {
+        [circuitDialogAlias]: fakeDialog,
+    };
+
+    const res = await client.templateSearch('my_template', params);
+```
+
+Search constructions by scs-template.
+
+```ts
+    import { ScAddr, ScTemplate } from "ts-sc-client";
+    import { client } from "../path-to-client";
+    
+    const params = {
+        ['_node']: fakeDialog,
+    };
+
+    const res = await client.templateSearch('dialog _-> _node;;', params);
 ```
 
 ## `client.templateGenerate(templ: ScTemplate): ScTemplateResult`

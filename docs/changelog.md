@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Get links by contents, content substrings
 - Add opportunity to create sc-elements by SCs-text
 
+### Changed
+
+- Revert of "Add params for search" revert
+- Revert of "Add opportunity to pass template and params by addr and idtf" revert
+
 ### Fixed
 
 - Return boolean value in eventsDestroy method
