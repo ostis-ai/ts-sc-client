@@ -317,7 +317,7 @@ export class ScClient {
   private processTemplate(template: ScTemplate | ScAddr | string) {
     if (template instanceof ScAddr)
       return { type: "addr", value: template.value };
-    else if (typeof template === "string" && template.search(/^([a-z]|_|\\d)*/))
+    else if (typeof template === "string" && /^[a-z0-9_]+$/.test(template))
       return { type: "idtf", value: template };
     else if (typeof template === "string")
       return template;

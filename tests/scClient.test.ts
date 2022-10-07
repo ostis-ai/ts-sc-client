@@ -405,6 +405,100 @@ describe("ScClient", () => {
     );
   });
 
+  test("templateSearchBySCs", async () => {
+    const res = await client.templateSearch("concept_node _-> _node1;;");
+
+    expect(res).toBeTruthy();
+
+    res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScTemplateResult));
+
+    await expect(server).toReceiveMessage(
+      expect.objectContaining({
+        type: "search_template",
+        payload: expect.objectContaining({
+          templ: "concept_node _-> _node1;;",
+          params: {},
+        }),
+      }),
+    );
+  });
+
+  test("templateSearchByString", async () => {
+    const construction = new ScConstruction();
+    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConst)
+    const addrs = await client.createElements(construction);
+    await server.nextMessage;
+
+    const fakeNodeAddr1 = addrs[0];
+    const fakeNodeAddr2 = addrs[1];
+
+    const params = {
+      ["_node1"]: fakeNodeAddr1,
+      ["_node2"]: fakeNodeAddr2,
+    };
+
+    const res = await client.templateSearch("test_template_1", params);
+
+    expect(res).toBeTruthy();
+
+    res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScTemplateResult));
+
+    await expect(server).toReceiveMessage(
+      expect.objectContaining({
+        type: "search_template",
+        payload: expect.objectContaining({
+          templ: expect.objectContaining({
+            type: "idtf",
+            value: "test_template_1",
+          }),
+          params: {
+            ["_node1"]: fakeNodeAddr1.value,
+            ["_node2"]: fakeNodeAddr2.value,
+          },
+        }),
+      }),
+    );
+  });
+
+  test("templateSearchByAddr", async () => {
+    const construction = new ScConstruction();
+    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConstStruct)
+    const addrs = await client.createElements(construction);
+    await server.nextMessage;
+
+    const fakeNodeAddr1 = addrs[0];
+    const fakeTemplateAddr = addrs[1];
+
+    const params = {
+      ["_node1"]: fakeNodeAddr1,
+      ["_node2"]: "test_node",
+    };
+
+    const res = await client.templateSearch(fakeTemplateAddr, params);
+
+    expect(res).toBeTruthy();
+
+    res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScTemplateResult));
+
+    await expect(server).toReceiveMessage(
+        expect.objectContaining({
+          type: "search_template",
+          payload: expect.objectContaining({
+            templ: expect.objectContaining({
+              type: "addr",
+              value: fakeTemplateAddr.value,
+            }),
+            params: {
+              ["_node1"]: fakeNodeAddr1.value,
+              ["_node2"]: "test_node",
+            },
+          }),
+        }),
+    );
+  });
+
   test("templateGenerate", async () => {
     const construction = new ScConstruction();
     construction.createNode(ScType.NodeConst);
@@ -473,6 +567,97 @@ describe("ScClient", () => {
           ]),
           params: {
             [dialog]: fakeParamAddr.value,
+          },
+        }),
+      }),
+    );
+  });
+
+  test("templateGenerateBySCs", async () => {
+    const res = await client.templateGenerate("concept_node _-> _node1;;");
+
+    expect(res).toBeTruthy();
+    expect(res).toBeInstanceOf(ScTemplateResult);
+
+    await expect(server).toReceiveMessage(
+        expect.objectContaining({
+          type: "generate_template",
+          payload: expect.objectContaining({
+            templ: "concept_node _-> _node1;;",
+            params: {},
+          }),
+        }),
+    );
+  });
+
+  test("templateGenerateByString", async () => {
+    const construction = new ScConstruction();
+    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConst)
+    const addrs = await client.createElements(construction);
+    await server.nextMessage;
+
+    const fakeNodeAddr1 = addrs[0];
+    const fakeNodeAddr2 = addrs[1];
+
+    const params = {
+      ["_node1"]: fakeNodeAddr1,
+      ["_node2"]: fakeNodeAddr2,
+    };
+
+    const res = await client.templateGenerate("test_template_1", params);
+
+    expect(res).toBeTruthy();
+    expect(res).toBeInstanceOf(ScTemplateResult);
+
+    await expect(server).toReceiveMessage(
+      expect.objectContaining({
+        type: "generate_template",
+        payload: expect.objectContaining({
+          templ: expect.objectContaining({
+            type: "idtf",
+            value: "test_template_1",
+          }),
+          params: {
+            ["_node1"]: fakeNodeAddr1.value,
+            ["_node2"]: fakeNodeAddr2.value,
+          },
+        }),
+      }),
+    );
+  });
+
+  test("templateGenerateByAddr", async () => {
+    const construction = new ScConstruction();
+    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConstStruct)
+    const addrs = await client.createElements(construction);
+    await server.nextMessage;
+
+    const fakeNodeAddr1 = addrs[0];
+    const fakeTemplateAddr = addrs[1];
+
+    const params = {
+      ["_node1"]: fakeNodeAddr1,
+      ["_node2"]: "test_node",
+    };
+
+    const res = await client.templateGenerate(fakeTemplateAddr, params);
+
+    expect(res).toBeTruthy();
+    expect(res).toBeInstanceOf(ScTemplateResult);
+
+    await expect(server).toReceiveMessage(
+      expect.objectContaining({
+        type: "generate_template",
+        payload: expect.objectContaining({
+          templ: expect.objectContaining({
+            type: "addr",
+            value: fakeTemplateAddr.value,
+          }),
+          params: {
+            ["_node1"]: fakeNodeAddr1.value,
+            ["_node2"]: "test_node",
           },
         }),
       }),
