@@ -295,9 +295,9 @@ Subscribe to event. Event callback, passed to `ScEventParams` constructor, has 4
     const res = await client.eventsCreate([evtParams]);
 ```
 
-## `client.eventsDestroy(eventIds: number[]): void`
+## `client.eventsDestroy(eventIds: number[]): boolean`
 
-Destroy an event. Input arguments are event ids returned by eventsCreate method
+Destroy an event. Input arguments are event ids returned by eventsCreate method. Returns true if events has been deleted.
 
 
 ```ts

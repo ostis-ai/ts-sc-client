@@ -1,6 +1,13 @@
 import { ScEventType } from "./ScEvent";
 import { ScLinkContentType, TContentString } from "./ScLinkContent";
 
+interface ScServerError {
+  ref: number;
+  message: string;
+}
+
+export type ScError = string | ScServerError[];
+
 export interface IContentResult {
   value: number | string | null;
   type: TContentString;
@@ -117,12 +124,14 @@ interface IGenerateResult {
 
 export interface Response<
   Payload extends unknown = unknown,
-  Event extends boolean = boolean
+  Event extends boolean = boolean,
+  Errors extends ScError = ScError
 > {
   id: number;
   status: boolean;
   event: Event;
   payload: Payload;
+  errors: Errors;
 }
 
 export type TAction =
@@ -138,8 +147,9 @@ export type TAction =
 
 export type TWSCallback<
   Payload extends unknown = unknown,
-  Event extends boolean = boolean
-> = (data: Response<Payload, Event>) => void;
+  Event extends boolean = boolean,
+  Errors extends ScError = ScError
+> = (data: Response<Payload, Event, Errors>) => void;
 
 type Args<
   Action extends TAction,

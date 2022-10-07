@@ -48,6 +48,14 @@ const getMockAnswerPayload = (data: Request) => {
   return [];
 };
 
+const getMockAnswerErrors = (data: Request) => {
+  if (data.type === "create_elements_by_scs" && data.payload[0] == "->;;") {
+    return [{ ref: 1, message: "Parse error" }];
+  }
+
+  return [];
+}
+
 export const setupServer = (server: WS) => {
   server.on("connection", (socket) => {
     socket.on(
@@ -61,6 +69,7 @@ export const setupServer = (server: WS) => {
           status: true,
           event: false,
           payload: getMockAnswerPayload(data),
+          errors: getMockAnswerErrors(data),
         };
 
         server.send(dataToSend);
@@ -70,6 +79,7 @@ export const setupServer = (server: WS) => {
             status: true,
             event: true,
             payload: [1, 2, 3],
+            errors: getMockAnswerErrors(data),
           });
         }
       }

@@ -8,11 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support sc-server errors handling
 - Get strings by substrings
 - Get links by contents, content substrings
 - Add opportunity to create sc-elements by SCs-text
 
 ### Fixed
+
+- Return boolean value in eventsDestroy method
 - Improved tests work not only with the mock-server, but also with the real sc-machine server
 
 ## [v0.2.1]
