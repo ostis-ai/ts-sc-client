@@ -340,10 +340,7 @@ export class ScClient {
     );
   }
 
-  public async templateSearch(
-    template: ScTemplate | ScAddr | string,
-    params: Record<string, ScAddr | string> = {}
-  ) {
+  public async templateSearch(template: ScTemplate | ScAddr | string, params: Record<string, ScAddr | string> = {}) {
     return new Promise<ScTemplateResult[]>(async (resolve, reject) => {
       const templ = this.processTemplate(template);
       const processedParams = this.processTemplateParams(params);
