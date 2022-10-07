@@ -314,10 +314,37 @@ export class ScClient {
     return { type: "alias", value, ...aliasObj };
   }
 
-  public async templateSearch(template: ScTemplate | string, params: Record<string, ScAddr | string> = {}) {
-    return new Promise<ScTemplateResult[]>(async (resolve, reject) => {
-      const payload = typeof template === "string" ? template : template.triples.map(({ source, edge, target }) => [this.processTripleItem(source), this.processTripleItem(edge), this.processTripleItem(target)]);
+  private processTemplate(template: ScTemplate | ScAddr | string) {
+    if (template instanceof ScAddr)
+      return { type: "addr", value: template.value };
+    else if (typeof template === "string" && /^[a-z0-9_]+$/.test(template))
+      return { type: "idtf", value: template };
+    else if (typeof template === "string")
+      return template;
+    else
+      return template.triples.map(({ source, edge, target }) => [
+        this.processTripleItem(source),
+        this.processTripleItem(edge),
+        this.processTripleItem(target),
+      ]);
+  }
 
+  private processTemplateParams(params: Record<string, ScAddr | string>) {
+    return Object.keys(params).reduce(
+        (acc, key) => {
+          const param = params[key];
+          acc[key] = typeof param === "string" ? param : param.value;
+          return acc;
+        },
+        {} as Record<string, number | string>
+    );
+  }
+
+  public async templateSearch(template: ScTemplate | ScAddr | string, params: Record<string, ScAddr | string> = {}) {
+    return new Promise<ScTemplateResult[]>(async (resolve, reject) => {
+      const templ = this.processTemplate(template);
+      const processedParams = this.processTemplateParams(params);
+      const payload = { templ, params: processedParams };
       this.sendMessage("search_template", payload, ({ payload, status, errors }) => {
         if (!status) return resolve([]);
 
@@ -330,19 +357,12 @@ export class ScClient {
     });
   }
 
-  public async templateGenerate(template: ScTemplate | string, params: Record<string, ScAddr>) {
+  public async templateGenerate(template: ScTemplate | ScAddr | string, params: Record<string, ScAddr | string> = {}) {
     return new Promise<ScTemplateResult | null>(async (resolve, reject) => {
-      const templ = typeof template === "string" ? template : template.triples.map(({ source, edge, target }) => [this.processTripleItem(source), this.processTripleItem(edge), this.processTripleItem(target)]);
+      const templ = this.processTemplate(template);
+      const processedParams = this.processTemplateParams(params);
 
-      const numericParams = Object.keys(params).reduce(
-        (acc, key) => ({
-          ...acc,
-          [key]: params[key].value,
-        }),
-        {} as Record<string, number>
-      );
-
-      const payload = { templ, params: numericParams };
+      const payload = { templ, params: processedParams };
 
       this.sendMessage("generate_template", payload, ({ status, payload, errors }) => {
         if (!status) resolve(null);
