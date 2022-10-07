@@ -374,32 +374,34 @@ describe("ScClient", () => {
     await expect(server).toReceiveMessage(
       expect.objectContaining({
         type: "search_template",
-        payload: expect.arrayContaining([
-          expect.arrayContaining([
-            { type: "addr", value: fakeNodeAddr1.value },
-            {
-              alias: expect.any(String),
-              type: "type",
-              value: ScType.EdgeDCommonVar.value,
-            },
-            {
-              alias: circuitDialogAlias,
-              type: "type",
-              value: ScType.NodeVarStruct.value,
-            },
+        payload: expect.objectContaining({
+          templ: expect.arrayContaining([
+            expect.arrayContaining([
+              {type: "addr", value: fakeNodeAddr1.value},
+              {
+                alias: expect.any(String),
+                type: "type",
+                value: ScType.EdgeDCommonVar.value,
+              },
+              {
+                alias: circuitDialogAlias,
+                type: "type",
+                value: ScType.NodeVarStruct.value,
+              },
+            ]),
+            expect.arrayContaining([
+              {type: "addr", value: fakeNodeAddr2.value},
+              {type: "type", value: ScType.EdgeAccessVarPosPerm.value},
+              {type: "alias", value: expect.any(String)},
+            ]),
+            expect.arrayContaining([
+              {type: "alias", value: circuitDialogAlias},
+              {type: "type", value: ScType.EdgeAccessVarPosPerm.value},
+              {alias: dialog, type: "type", value: ScType.NodeVar.value},
+            ]),
           ]),
-          expect.arrayContaining([
-            { type: "addr", value: fakeNodeAddr2.value },
-            { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
-            { type: "alias", value: expect.any(String) },
-          ]),
-          expect.arrayContaining([
-            { type: "alias", value: circuitDialogAlias },
-            { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
-            { alias: dialog, type: "type", value: ScType.NodeVar.value },
-          ]),
-        ]),
-      })
+        }),
+      }),
     );
   });
 
@@ -473,7 +475,7 @@ describe("ScClient", () => {
             [dialog]: fakeParamAddr.value,
           },
         }),
-      })
+      }),
     );
   });
 
