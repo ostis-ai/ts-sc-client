@@ -7,7 +7,10 @@
   "scripts": {
     "start": "webpack --progress --color --config webpack/webpack.dev.js",
     "build": "webpack --progress --color --config webpack/webpack.prod.js",
-    "test": "jest"
+    "test-mock": "jest tests/scClientMock.test.ts tests/scClientBase.test.ts",
+    "test-mock-coverage": "jest tests/scClientMock.test.ts tests/scClientBase.test.ts --collect-coverage",
+    "test-machine": "jest tests/scClientMachine.test.ts tests/scClientBase.test.ts",
+    "test-machine-coverage": "jest tests/scClientMachine.test.ts tests/scClientBase.test.ts --collect-coverage"
   },
   "repository": {
     "type": "git",
