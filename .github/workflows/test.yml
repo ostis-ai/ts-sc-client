@@ -1,6 +1,6 @@
 name: run-tests
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 jobs:
   test:
@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [ 14.x ]
 
     steps:
       - uses: actions/checkout@v2
@@ -24,6 +24,6 @@ jobs:
         run: yarn install
 
       - name: run test
-        run: | 
+        run: |
           sudo docker run --rm -i -p 8090:8090 ostis/sc-machine serve &
           yarn run test-machine

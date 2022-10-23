@@ -11,26 +11,34 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-20.04
-    
+
     strategy:
       matrix:
-        node-version: [14.x]
-    
+        node-version: [ 14.x ]
+
     steps:
       - uses: actions/checkout@v2
       - name: setup node ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
-      - run: npm run test
+      - name: pull-sc-machine-image
+        run: docker pull ostis/sc-machine
+
+      - name: install
+        run: yarn install
+
+      - name: run test
+        run: |
+          sudo docker run --rm -i -p 8090:8090 ostis/sc-machine serve &
+          yarn run test-machine
 
   npm-publish:
     runs-on: ubuntu-20.04
     needs: quality
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [ 14.x ]
 
     steps:
       - uses: actions/checkout@v2
