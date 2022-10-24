@@ -528,7 +528,7 @@ describe("Sc-Client with real sc-machine server", () => {
         const prepareConstruction = new ScConstruction();
         prepareConstruction.createNode(ScType.NodeConst);
         prepareConstruction.createNode(ScType.NodeConst);
-        prepareConstruction.createNode(ScType.NodeRole);
+        prepareConstruction.createNode(ScType.NodeConstRole);
         const nodeAddrs = await client.createElements(prepareConstruction);
         const nodeAddr1 = nodeAddrs[0];
         const nodeAddr2 = nodeAddrs[1];
@@ -558,7 +558,7 @@ describe("Sc-Client with real sc-machine server", () => {
         expect(res).toHaveLength(1);
         res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScTemplateResult));
         const allAddrs = nodeAddrs.concat(edgeAddrs).concat(relEdgeAddrs);
-        expect(res[0].size).toStrictEqual(allAddrs.length);
+        expect(res[0].size).toStrictEqual(allAddrs.length+1); // +1 because of template5 returns two triplets
         expect(allAddrs).toContainEqual(res[0].get(0));
         expect(allAddrs).toContainEqual(res[0].get(1));
         expect(allAddrs).toContainEqual(res[0].get(relNodeAlias));
