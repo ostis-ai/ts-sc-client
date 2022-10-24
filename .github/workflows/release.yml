@@ -23,14 +23,14 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: pull-sc-machine-image
-        run: docker pull ostis/sc-machine
+        run: docker pull ostis/sc-machine:0.7.0-Rebirth
 
       - name: install
         run: yarn install
 
       - name: run test
         run: |
-          sudo docker run --rm -i -p 8090:8090 ostis/sc-machine serve &
+          sudo docker run --rm -i -p 8090:8090 ostis/sc-machine:0.7.0-Rebirth serve &
           yarn run test-machine
 
   npm-publish:
