@@ -277,7 +277,22 @@ describe("Sc-Client with real sc-machine server", () => {
         expect(res[0].type).toStrictEqual(ScLinkContentType.Int);
     },timeoutForSimpleTest);
 
-    test("getContentFloat", async () => {
+    test("getContentFloat1", async () => {
+        const contentFloat = 4.0;
+        const construction = new ScConstruction();
+        construction.createLink(ScType.LinkConst, new ScLinkContent(contentFloat, ScLinkContentType.Float));
+        const addrs = await client.createElements(construction);
+        const floatLinkAddr = addrs[0];
+
+        const res = await client.getLinkContents([floatLinkAddr]);
+
+        expect(res).toHaveLength(addrs.length);
+        res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScLinkContent));
+        expect(res[0].data).toStrictEqual(contentFloat);
+        expect(res[0].type).toStrictEqual(ScLinkContentType.Float);
+    }, timeoutForSimpleTest);
+
+    test("getContentFloat2", async () => {
         const contentFloat = 4.2;
         const construction = new ScConstruction();
         construction.createLink(ScType.LinkConst, new ScLinkContent(contentFloat, ScLinkContentType.Float));
