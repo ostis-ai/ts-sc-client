@@ -1,6 +1,6 @@
 name: run-tests
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 jobs:
   test:
@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [ 14.x ]
 
     steps:
       - uses: actions/checkout@v2
@@ -17,8 +17,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: pull-sc-machine-image
+        run: docker pull ostis/sc-machine:0.7.0-Rebirth
+
       - name: install
-        run: npm install
+        run: yarn install
 
       - name: run test
-        run: npm run test
+        run: |
+          sudo docker run --rm -i -p 8090:8090 ostis/sc-machine:0.7.0-Rebirth serve &
+          yarn run test-machine

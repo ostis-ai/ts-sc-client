@@ -12,7 +12,7 @@ import { ScTemplateResult } from "../src/ScTemplateResult";
 
 const URL = "ws://localhost:1234";
 
-describe("ScClient", () => {
+describe("Sc-client with mock sc-machine server", () => {
   let client: ScClient;
   let server: WS;
 
