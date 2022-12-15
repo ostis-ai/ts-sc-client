@@ -9,7 +9,7 @@ interface ScServerError {
 export type ScError = string | ScServerError[];
 
 export interface IContentResult {
-  value: number | string | null;
+  value: number | string;
   type: TContentString;
 }
 

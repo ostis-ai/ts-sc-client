@@ -223,7 +223,7 @@ export class ScClient {
       }));
 
       this.sendMessage("content", payload, ({ payload, errors }) => {
-        const result = payload.filter((res): res is { value: string | number; type: TContentString } => !!res.value).map(({ type, value }) => new ScLinkContent(value, ScLinkContent.stringToType(type)));
+        const result = payload.map((res) => new ScLinkContent(res.value, ScLinkContent.stringToType(res.type)));
         this.resolveOrReject(resolve, reject, result, errors);
       });
     });
