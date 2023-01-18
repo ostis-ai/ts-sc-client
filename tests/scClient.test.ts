@@ -121,6 +121,26 @@ describe("ScClient", () => {
     );
   });
 
+  test("createElementsBySCsWithOutputStruct", async () => {
+    const construction = new ScConstruction();
+    construction.createNode(ScType.NodeConst) 
+    const addrs = await client.createElements(construction);
+    await server.nextMessage;
+
+    const res = await client.createElementsBySCs([{scs: "my_class -> node1;;", outputStructure: addrs[0]}]);
+
+    expect(res).toHaveLength(1);
+
+    await expect(server).toReceiveMessage(
+        expect.objectContaining({
+          type: "create_elements_by_scs",
+          payload: expect.arrayContaining([
+            "my_class -> node1;;",
+          ]),
+        })
+    );
+  });
+
   test("deleteElements", async () => {
     const construction = new ScConstruction();
     construction.createNode(ScType.NodeConst)
