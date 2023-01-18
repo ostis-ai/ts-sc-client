@@ -1,3 +1,4 @@
+import { ScAddr } from "./ScAddr";
 import { ScEventType } from "./ScEvent";
 import { ScLinkContentType, TContentString } from "./ScLinkContent";
 
@@ -18,6 +19,16 @@ interface ISetContentPayload {
   type: TContentString;
   data: string | number;
   addr: number;
+}
+
+export interface ISCs{
+  scs: string;
+  outputStructure: ScAddr | null; 
+}
+
+interface ICreateElementsBySCsArgs {
+  scs: string;
+  outputStructure: number; 
 }
 
 interface IGetContentPayload {
@@ -187,7 +198,7 @@ export type TCreateElementsArgs = Args<
 >;
 export type TCreateElementsBySCsArgs = Args<
   "create_elements_by_scs",
-  Array<string>,
+  Array<ICreateElementsBySCsArgs>,
   boolean[]
 >;
 export type TSetContentArgs = Args<
