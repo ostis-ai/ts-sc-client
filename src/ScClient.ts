@@ -7,7 +7,7 @@ import { ScLinkContent, TContentString } from "./ScLinkContent";
 import { ScTemplate, ScTemplateValue } from "./ScTemplate";
 import { ScTemplateResult } from "./ScTemplateResult";
 import { ScType } from "./ScType";
-import { ScError, IEdge, ILink, INode, TCheckElementsArgs, TGetContentArgs, TSetContentArgs, TGetLinksArgs, TGetStringsArgs, TCreateElementsArgs, TCreateElementsBySCsArgs, TDeleteElementsArgs, TWSCallback, TAction, TKeynodesElementsArgs, TTemplateSearchArgs, TTripleItem, TTemplateGenerateArgs, TCreateEventArgs, TDeleteEventArgs } from "./types";
+import { ScError, IEdge, ILink, INode, TCheckElementsArgs, TGetContentArgs, TSetContentArgs, TGetLinksArgs, TGetStringsArgs, TCreateElementsArgs, TCreateElementsBySCsArgs, TDeleteElementsArgs, TWSCallback, TAction, TKeynodesElementsArgs, TTemplateSearchArgs, TTripleItem, TTemplateGenerateArgs, TCreateEventArgs, TDeleteEventArgs, ISCs } from "./types";
 import { transformEdgeInfo } from "./utils";
 
 export interface Response<T = any> {
@@ -183,9 +183,18 @@ export class ScClient {
     });
   }
 
-  public async createElementsBySCs(scsText: string[]) {
+  public async createElementsBySCs(scsText: string[] | ISCs[]) {
     return new Promise<boolean[]>((resolve, reject) => {
-      this.sendMessage("create_elements_by_scs", scsText, ({ payload, errors }) => {
+      const payload = scsText.map((scsString) => {
+        if(typeof scsString === "string")
+        {
+          return {scs: scsString, outputStructure: 0 }
+        }
+        else{
+          return {scs: scsString.scs, outputStructure: scsString.outputStructure?.value as number}
+        }
+      })
+      this.sendMessage("create_elements_by_scs", payload, ({ payload, errors }) => {
         this.resolveOrReject(resolve, reject, payload, errors);
       });
     });
