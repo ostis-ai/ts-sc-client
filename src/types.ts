@@ -23,12 +23,12 @@ interface ISetContentPayload {
 
 export interface ISCs {
   scs: string;
-  outputStructure: ScAddr;
+  output_structure: ScAddr;
 }
 
 interface ICreateElementsBySCsArgs {
   scs: string;
-  outputStructure: number;
+  output_structure: number;
 }
 
 interface IGetContentPayload {

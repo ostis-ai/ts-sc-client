@@ -187,11 +187,9 @@ export class ScClient {
     return new Promise<boolean[]>((resolve, reject) => {
       const payload = scsText.map((scsString) => {
         if (typeof scsString === "string") {
-          return { scs: scsString, outputStructure: 0 }
+          return { scs: scsString, output_structure: 0 }
         }
-        else {
-          return { scs: scsString.scs, outputStructure: scsString.outputStructure?.value as number }
-        }
+        return { scs: scsString.scs, output_structure: scsString.output_structure?.value}
       })
       this.sendMessage("create_elements_by_scs", payload, ({ payload, errors }) => {
         this.resolveOrReject(resolve, reject, payload, errors);
