@@ -128,7 +128,7 @@ export class ScClient {
       return resolve(success);
     }
 
-    const transformedErrors = typeof errors === 'string' ? errors : errors.map(({message}) => message);
+    const transformedErrors = typeof errors === 'string' ? errors : errors.map(({ message }) => message);
     return reject(transformedErrors);
   }
 
@@ -186,12 +186,11 @@ export class ScClient {
   public async createElementsBySCs(scsText: string[] | ISCs[]) {
     return new Promise<boolean[]>((resolve, reject) => {
       const payload = scsText.map((scsString) => {
-        if(typeof scsString === "string")
-        {
-          return {scs: scsString, outputStructure: 0 }
+        if (typeof scsString === "string") {
+          return { scs: scsString, outputStructure: 0 }
         }
-        else{
-          return {scs: scsString.scs, outputStructure: scsString.outputStructure?.value as number}
+        else {
+          return { scs: scsString.scs, outputStructure: scsString.outputStructure?.value as number }
         }
       })
       this.sendMessage("create_elements_by_scs", payload, ({ payload, errors }) => {
@@ -340,12 +339,12 @@ export class ScClient {
 
   private processTemplateParams(params: Record<string, ScAddr | string>) {
     return Object.keys(params).reduce(
-        (acc, key) => {
-          const param = params[key];
-          acc[key] = typeof param === "string" ? param : param.value;
-          return acc;
-        },
-        {} as Record<string, number | string>
+      (acc, key) => {
+        const param = params[key];
+        acc[key] = typeof param === "string" ? param : param.value;
+        return acc;
+      },
+      {} as Record<string, number | string>
     );
   }
 
