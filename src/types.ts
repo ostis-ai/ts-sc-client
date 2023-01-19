@@ -21,14 +21,14 @@ interface ISetContentPayload {
   addr: number;
 }
 
-export interface ISCs{
+export interface ISCs {
   scs: string;
-  outputStructure: ScAddr | null; 
+  outputStructure: ScAddr;
 }
 
 interface ICreateElementsBySCsArgs {
   scs: string;
-  outputStructure: number; 
+  outputStructure: number;
 }
 
 interface IGetContentPayload {

@@ -100,8 +100,10 @@ describe("ScClient", () => {
         expect.objectContaining({
           type: "create_elements_by_scs",
           payload: expect.arrayContaining([
-            "my_class -> node1;;",
-            "my_class -> rrel_1: node1;;",
+            {scs: "my_class -> node1;;",
+             outputStructure: 0},
+            {scs: "my_class -> rrel_1: node1;;",
+             outputStructure: 0},
           ]),
         })
     );
@@ -115,7 +117,8 @@ describe("ScClient", () => {
         expect.objectContaining({
           type: "create_elements_by_scs",
           payload: expect.arrayContaining([
-            "->;;",
+            {scs: "->;;",
+             outputStructure: 0},
           ]),
         })
     );
@@ -135,7 +138,24 @@ describe("ScClient", () => {
         expect.objectContaining({
           type: "create_elements_by_scs",
           payload: expect.arrayContaining([
-            "my_class -> node1;;",
+            {scs: "my_class -> node1;;",
+             outputStructure: 0},
+          ]),
+        })
+    );
+  });
+
+  test("createElementsBySCsWithOutputStruct", async () => {
+    const res = await client.createElementsBySCs([{scs: "my_class -> node1;;", outputStructure: new ScAddr(0)}]);
+
+    expect(res).toHaveLength(1);
+
+    await expect(server).toReceiveMessage(
+        expect.objectContaining({
+          type: "create_elements_by_scs",
+          payload: expect.arrayContaining([
+            {scs: "my_class -> node1;;",
+             outputStructure: 0},
           ]),
         })
     );
