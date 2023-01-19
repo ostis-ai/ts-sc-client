@@ -89,9 +89,9 @@ Create specified in ScConstruction elements.
     const res = await client.createElements(construction);
 ```
 
-## `client.createElementsBySCs(scsText: string[]): boolean[]`
+## `client.createElementsBySCs(scsText: string[] | ISCs[]): boolean[]`
 
-Create specified in ScConstruction elements by SCs text. Returned boolean represents whether SCs text processing was 
+Create specified in ScConstruction elements by SCs text and puts them in structure. Returned boolean represents whether SCs text processing was 
 successfull.
 
 ```ts
@@ -99,6 +99,10 @@ successfull.
 
     const res = await client.createElementsBySCs(
         ["my_class -> node1;;", "node1 => relation: node2;;"]
+    );
+
+    const res2 = await client.createElementsBySCs(
+        [{scs: "my_class -> node1;;", output_structure: new ScAddr(0)}]
     );
 ```
 
