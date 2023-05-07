@@ -1,13 +1,15 @@
 {
     "version": "1.6.2",
     "compilerOptions": {
-        "target": "es6",
+        "target": "es2021",
         "strict": true,
-        "module": "commonjs",
         "sourceMap": true,
-        "outDir": "build/lib/",
         "declaration": true,
-      "allowSyntheticDefaultImports": true
+        "esModuleInterop": true,
+        "allowJs": true,
+        "skipLibCheck": true,
+        "module": "CommonJS",
+        "moduleResolution": "Node"
     },
     "exclude": [
         "node_modules"
