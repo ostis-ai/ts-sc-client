@@ -19,7 +19,10 @@
     "build-esm": "tsc --project tsconfig.esm.json && echo '{\"type\":\"commonjs\"}' > ./build/package.json",
     "build-types": "tsc --project tsconfig.types.json",
     "build-webpack": "webpack --progress --color --config webpack/webpack.prod.js",
-    "test": "jest"
+    "test-mock": "jest tests/scClientMock.test.ts tests/scClientBase.test.ts",
+    "test-mock-coverage": "jest tests/scClientMock.test.ts tests/scClientBase.test.ts --collect-coverage",
+    "test-machine": "jest tests/scClientMachine.test.ts tests/scClientBase.test.ts",
+    "test-machine-coverage": "jest tests/scClientMachine.test.ts tests/scClientBase.test.ts --collect-coverage"
   },
   "repository": {
     "type": "git",

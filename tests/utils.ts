@@ -1,4 +1,4 @@
-import { Request, Response } from "../src/ScClient";
+import { Request, Response } from "../src";
 import WS from "jest-websocket-mock";
 
 const EVENT_ID = 7;
