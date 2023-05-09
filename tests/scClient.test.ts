@@ -1,14 +1,18 @@
-import { ScAddr } from "../src/ScAddr";
-import { ScClient } from "../src/ScClient";
-import { ScConstruction } from "../src/ScConstruction";
-import { ScType } from "../src/ScType";
 import WS from "jest-websocket-mock";
-import { ScLinkContent, ScLinkContentType } from "../src/ScLinkContent";
-import { ScTemplate } from "../src/ScTemplate";
-import { ScEvent, ScEventType } from "../src/ScEvent";
-import { ScEventParams } from "../src/ScEventParams";
-import { setupServer } from "./utils";
-import { ScTemplateResult } from "../src/ScTemplateResult";
+import {
+  ScAddr,
+  ScClient,
+  ScConstruction,
+  ScEvent,
+  ScEventParams,
+  ScEventType,
+  ScLinkContent,
+  ScLinkContentType,
+  ScTemplate,
+  ScTemplateResult,
+  ScType
+} from "../src";
+import {setupServer} from "./utils";
 
 const URL = "ws://localhost:1234";
 
@@ -17,10 +21,14 @@ describe("ScClient", () => {
   let server: WS;
 
   beforeEach(async () => {
-    server = new WS(URL, { jsonProtocol: true });
+    server = new WS(URL, {jsonProtocol: true});
 
+    // create the mocked Websocket client
+    // because the default client from 'ws' cannot be mocked
+    const wsClient = new WebSocket(URL)
     setupServer(server);
-    client = new ScClient(URL);
+    // @ts-ignore
+    client = new ScClient(wsClient);
 
     await server.connected;
   });
@@ -45,14 +53,14 @@ describe("ScClient", () => {
 
     construction.createNode(ScType.NodeConst, myNode);
     construction.createLink(
-      ScType.LinkConst,
-      new ScLinkContent(linkContent, ScLinkContentType.String),
-      myLink
+        ScType.LinkConst,
+        new ScLinkContent(linkContent, ScLinkContentType.String),
+        myLink
     );
     construction.createEdge(
-      ScType.EdgeAccessConstPosPerm,
-      myNode,
-      fakeNodeAddr
+        ScType.EdgeAccessConstPosPerm,
+        myNode,
+        fakeNodeAddr
     );
 
     const res = await client.createElements(construction);
@@ -61,33 +69,33 @@ describe("ScClient", () => {
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScAddr));
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "create_elements",
-        payload: expect.arrayContaining([
-          {
-            el: "node",
-            type: ScType.NodeConst.value,
-          },
-          {
-            el: "link",
-            type: ScType.LinkConst.value,
-            content: linkContent,
-            content_type: ScLinkContentType.String,
-          },
-          {
-            el: "edge",
-            src: {
-              type: "ref",
-              value: 0,
+        expect.objectContaining({
+          type: "create_elements",
+          payload: expect.arrayContaining([
+            {
+              el: "node",
+              type: ScType.NodeConst.value,
             },
-            trg: {
-              type: "addr",
-              value: fakeNodeAddr.value,
+            {
+              el: "link",
+              type: ScType.LinkConst.value,
+              content: linkContent,
+              content_type: ScLinkContentType.String,
             },
-            type: ScType.EdgeAccessConstPosPerm.value,
-          },
-        ]),
-      })
+            {
+              el: "edge",
+              src: {
+                type: "ref",
+                value: 0,
+              },
+              trg: {
+                type: "addr",
+                value: fakeNodeAddr.value,
+              },
+              type: ScType.EdgeAccessConstPosPerm.value,
+            },
+          ]),
+        })
     );
   });
 
@@ -97,36 +105,38 @@ describe("ScClient", () => {
     expect(res).toHaveLength(2);
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "create_elements_by_scs",
-        payload: expect.arrayContaining([
-          {
-            scs: "my_class -> node1;;",
-            output_structure: 0
-          },
-          {
-            scs: "my_class -> rrel_1: node1;;",
-            output_structure: 0
-          },
-        ]),
-      })
+        expect.objectContaining({
+          type: "create_elements_by_scs",
+          payload: expect.arrayContaining([
+            {
+              scs: "my_class -> node1;;",
+              output_structure: 0
+            },
+            {
+              scs: "my_class -> rrel_1: node1;;",
+              output_structure: 0
+            },
+          ]),
+        })
     );
   });
 
   test("createElementsBySCsUnsuccessful", async () => {
     client.createElementsBySCs(["->;;"])
-      .then(null).catch((errors) => { expect(errors).toHaveLength(1); });
+        .then(null).catch((errors) => {
+      expect(errors).toHaveLength(1);
+    });
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "create_elements_by_scs",
-        payload: expect.arrayContaining([
-          {
-            scs: "->;;",
-            output_structure: 0
-          },
-        ]),
-      })
+        expect.objectContaining({
+          type: "create_elements_by_scs",
+          payload: expect.arrayContaining([
+            {
+              scs: "->;;",
+              output_structure: 0
+            },
+          ]),
+        })
     );
   });
 
@@ -136,60 +146,63 @@ describe("ScClient", () => {
     const addrs = await client.createElements(construction);
     await server.nextMessage;
 
-    const res = await client.createElementsBySCs([{ scs: "my_class -> node1;;", output_structure: addrs[0] }]);
+    const res = await client.createElementsBySCs([{scs: "my_class -> node1;;", output_structure: addrs[0]}]);
 
     expect(res).toHaveLength(1);
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "create_elements_by_scs",
-        payload: expect.arrayContaining([
-          {
-            scs: "my_class -> node1;;",
-            output_structure: 0
-          },
-        ]),
-      })
+        expect.objectContaining({
+          type: "create_elements_by_scs",
+          payload: expect.arrayContaining([
+            {
+              scs: "my_class -> node1;;",
+              output_structure: 0
+            },
+          ]),
+        })
     );
   });
 
   test("createElementsBySCsWithOutputStructNewScAddr", async () => {
-    const res = await client.createElementsBySCs([{ scs: "my_class -> node1;;", output_structure: new ScAddr(0) }]);
+    const res = await client.createElementsBySCs([{scs: "my_class -> node1;;", output_structure: new ScAddr(0)}]);
 
     expect(res).toHaveLength(1);
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "create_elements_by_scs",
-        payload: expect.arrayContaining([
-          {
-            scs: "my_class -> node1;;",
-            output_structure: 0
-          },
-        ]),
-      })
+        expect.objectContaining({
+          type: "create_elements_by_scs",
+          payload: expect.arrayContaining([
+            {
+              scs: "my_class -> node1;;",
+              output_structure: 0
+            },
+          ]),
+        })
     );
   });
 
   test("createElementsBySCsWithOutputStructNewScAddr", async () => {
-    const res = await client.createElementsBySCs([{ scs: "my_class -> node1;;", output_structure: new ScAddr(1) }, { scs: "my_class -> node2;;", output_structure: new ScAddr(2) }]);
+    const res = await client.createElementsBySCs([{
+      scs: "my_class -> node1;;",
+      output_structure: new ScAddr(1)
+    }, {scs: "my_class -> node2;;", output_structure: new ScAddr(2)}]);
 
     expect(res).toHaveLength(2);
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "create_elements_by_scs",
-        payload: expect.arrayContaining([
-          {
-            scs: "my_class -> node1;;",
-            output_structure: 1
-          },
-          {
-            scs: "my_class -> node2;;",
-            output_structure: 2
-          }
-        ]),
-      })
+        expect.objectContaining({
+          type: "create_elements_by_scs",
+          payload: expect.arrayContaining([
+            {
+              scs: "my_class -> node1;;",
+              output_structure: 1
+            },
+            {
+              scs: "my_class -> node2;;",
+              output_structure: 2
+            }
+          ]),
+        })
     );
   });
 
@@ -208,13 +221,13 @@ describe("ScClient", () => {
     expect(res).toBeTruthy();
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "delete_elements",
-        payload: expect.arrayContaining([
-          fakeNodeAddr1.value,
-          fakeNodeAddr2.value,
-        ]),
-      })
+        expect.objectContaining({
+          type: "delete_elements",
+          payload: expect.arrayContaining([
+            fakeNodeAddr1.value,
+            fakeNodeAddr2.value,
+          ]),
+        })
     );
   });
 
@@ -234,13 +247,13 @@ describe("ScClient", () => {
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScType));
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "check_elements",
-        payload: expect.arrayContaining([
-          fakeNodeAddr1.value,
-          fakeNodeAddr2.value,
-        ]),
-      })
+        expect.objectContaining({
+          type: "check_elements",
+          payload: expect.arrayContaining([
+            fakeNodeAddr1.value,
+            fakeNodeAddr2.value,
+          ]),
+        })
     );
   });
 
@@ -259,17 +272,17 @@ describe("ScClient", () => {
     expect(res[0]).toBeTruthy();
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "content",
-        payload: expect.arrayContaining([
-          {
-            addr: addrs[0].value,
-            command: "set",
-            type: "string",
-            data: content,
-          },
-        ]),
-      })
+        expect.objectContaining({
+          type: "content",
+          payload: expect.arrayContaining([
+            {
+              addr: addrs[0].value,
+              command: "set",
+              type: "string",
+              data: content,
+            },
+          ]),
+        })
     );
   });
 
@@ -288,15 +301,15 @@ describe("ScClient", () => {
     expect(res[0]).toBeInstanceOf(ScLinkContent);
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "content",
-        payload: expect.arrayContaining([
-          {
-            command: "get",
-            addr: nodeAddr.value,
-          },
-        ]),
-      })
+        expect.objectContaining({
+          type: "content",
+          payload: expect.arrayContaining([
+            {
+              command: "get",
+              addr: nodeAddr.value,
+            },
+          ]),
+        })
     );
   });
 
@@ -313,19 +326,19 @@ describe("ScClient", () => {
     res.forEach((resItem) => resItem.forEach((resItem) => expect(resItem).toBeInstanceOf(ScAddr)));
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "content",
-        payload: expect.arrayContaining([
-          {
-            command: "find",
-            data: linkContent1,
-          },
-          {
-            command: "find",
-            data: linkContent2,
-          },
-        ]),
-      })
+        expect.objectContaining({
+          type: "content",
+          payload: expect.arrayContaining([
+            {
+              command: "find",
+              data: linkContent1,
+            },
+            {
+              command: "find",
+              data: linkContent2,
+            },
+          ]),
+        })
     );
   });
 
@@ -342,19 +355,19 @@ describe("ScClient", () => {
     res.forEach((resItem) => resItem.forEach((resItem) => expect(resItem).toBeInstanceOf(ScAddr)));
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "content",
-        payload: expect.arrayContaining([
-          {
-            command: "find_links_by_substr",
-            data: linkContent1,
-          },
-          {
-            command: "find_links_by_substr",
-            data: linkContent2,
-          },
-        ]),
-      })
+        expect.objectContaining({
+          type: "content",
+          payload: expect.arrayContaining([
+            {
+              command: "find_links_by_substr",
+              data: linkContent1,
+            },
+            {
+              command: "find_links_by_substr",
+              data: linkContent2,
+            },
+          ]),
+        })
     );
   });
 
@@ -367,19 +380,19 @@ describe("ScClient", () => {
     expect(res).toHaveLength(2);
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "content",
-        payload: expect.arrayContaining([
-          {
-            command: "find_strings_by_substr",
-            data: linkContent1,
-          },
-          {
-            command: "find_strings_by_substr",
-            data: linkContent2,
-          },
-        ]),
-      })
+        expect.objectContaining({
+          type: "content",
+          payload: expect.arrayContaining([
+            {
+              command: "find_strings_by_substr",
+              data: linkContent1,
+            },
+            {
+              command: "find_strings_by_substr",
+              data: linkContent2,
+            },
+          ]),
+        })
     );
   });
 
@@ -388,8 +401,8 @@ describe("ScClient", () => {
     const id2 = "id2";
 
     const keynodes = [
-      { id: id1, type: ScType.NodeConst },
-      { id: id2, type: new ScType() },
+      {id: id1, type: ScType.NodeConst},
+      {id: id2, type: new ScType()},
     ];
 
     const res = await client.resolveKeynodes(keynodes);
@@ -400,13 +413,13 @@ describe("ScClient", () => {
     });
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "keynodes",
-        payload: expect.arrayContaining([
-          { command: "resolve", idtf: id1, elType: ScType.NodeConst.value },
-          { command: "find", idtf: id2 },
-        ]),
-      })
+        expect.objectContaining({
+          type: "keynodes",
+          payload: expect.arrayContaining([
+            {command: "resolve", idtf: id1, elType: ScType.NodeConst.value},
+            {command: "find", idtf: id2},
+          ]),
+        })
     );
   });
 
@@ -426,11 +439,11 @@ describe("ScClient", () => {
     const template = new ScTemplate();
 
     template.tripleWithRelation(
-      fakeNodeAddr1,
-      ScType.EdgeDCommonVar,
-      [ScType.NodeVarStruct, circuitDialogAlias],
-      ScType.EdgeAccessVarPosPerm,
-      fakeNodeAddr2
+        fakeNodeAddr1,
+        ScType.EdgeDCommonVar,
+        [ScType.NodeVarStruct, circuitDialogAlias],
+        ScType.EdgeAccessVarPosPerm,
+        fakeNodeAddr2
     );
     template.triple(circuitDialogAlias, ScType.EdgeAccessVarPosPerm, [
       ScType.NodeVar,
@@ -444,36 +457,36 @@ describe("ScClient", () => {
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScTemplateResult));
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "search_template",
-        payload: expect.objectContaining({
-          templ: expect.arrayContaining([
-            expect.arrayContaining([
-              { type: "addr", value: fakeNodeAddr1.value },
-              {
-                alias: expect.any(String),
-                type: "type",
-                value: ScType.EdgeDCommonVar.value,
-              },
-              {
-                alias: circuitDialogAlias,
-                type: "type",
-                value: ScType.NodeVarStruct.value,
-              },
+        expect.objectContaining({
+          type: "search_template",
+          payload: expect.objectContaining({
+            templ: expect.arrayContaining([
+              expect.arrayContaining([
+                {type: "addr", value: fakeNodeAddr1.value},
+                {
+                  alias: expect.any(String),
+                  type: "type",
+                  value: ScType.EdgeDCommonVar.value,
+                },
+                {
+                  alias: circuitDialogAlias,
+                  type: "type",
+                  value: ScType.NodeVarStruct.value,
+                },
+              ]),
+              expect.arrayContaining([
+                {type: "addr", value: fakeNodeAddr2.value},
+                {type: "type", value: ScType.EdgeAccessVarPosPerm.value},
+                {type: "alias", value: expect.any(String)},
+              ]),
+              expect.arrayContaining([
+                {type: "alias", value: circuitDialogAlias},
+                {type: "type", value: ScType.EdgeAccessVarPosPerm.value},
+                {alias: dialog, type: "type", value: ScType.NodeVar.value},
+              ]),
             ]),
-            expect.arrayContaining([
-              { type: "addr", value: fakeNodeAddr2.value },
-              { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
-              { type: "alias", value: expect.any(String) },
-            ]),
-            expect.arrayContaining([
-              { type: "alias", value: circuitDialogAlias },
-              { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
-              { alias: dialog, type: "type", value: ScType.NodeVar.value },
-            ]),
-          ]),
+          }),
         }),
-      }),
     );
   });
 
@@ -485,13 +498,13 @@ describe("ScClient", () => {
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScTemplateResult));
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "search_template",
-        payload: expect.objectContaining({
-          templ: "concept_node _-> _node1;;",
-          params: {},
+        expect.objectContaining({
+          type: "search_template",
+          payload: expect.objectContaining({
+            templ: "concept_node _-> _node1;;",
+            params: {},
+          }),
         }),
-      }),
     );
   });
 
@@ -517,19 +530,19 @@ describe("ScClient", () => {
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScTemplateResult));
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "search_template",
-        payload: expect.objectContaining({
-          templ: expect.objectContaining({
-            type: "idtf",
-            value: "test_template_1",
+        expect.objectContaining({
+          type: "search_template",
+          payload: expect.objectContaining({
+            templ: expect.objectContaining({
+              type: "idtf",
+              value: "test_template_1",
+            }),
+            params: {
+              ["_node1"]: fakeNodeAddr1.value,
+              ["_node2"]: fakeNodeAddr2.value,
+            },
           }),
-          params: {
-            ["_node1"]: fakeNodeAddr1.value,
-            ["_node2"]: fakeNodeAddr2.value,
-          },
         }),
-      }),
     );
   });
 
@@ -555,19 +568,19 @@ describe("ScClient", () => {
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScTemplateResult));
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "search_template",
-        payload: expect.objectContaining({
-          templ: expect.objectContaining({
-            type: "addr",
-            value: fakeTemplateAddr.value,
+        expect.objectContaining({
+          type: "search_template",
+          payload: expect.objectContaining({
+            templ: expect.objectContaining({
+              type: "addr",
+              value: fakeTemplateAddr.value,
+            }),
+            params: {
+              ["_node1"]: fakeNodeAddr1.value,
+              ["_node2"]: "test_node",
+            },
           }),
-          params: {
-            ["_node1"]: fakeNodeAddr1.value,
-            ["_node2"]: "test_node",
-          },
         }),
-      }),
     );
   });
 
@@ -589,11 +602,11 @@ describe("ScClient", () => {
     const template = new ScTemplate();
 
     template.tripleWithRelation(
-      fakeNodeAddr1,
-      ScType.EdgeDCommonVar,
-      [ScType.NodeVarStruct, circuitDialogAlias],
-      ScType.EdgeAccessVarPosPerm,
-      fakeNodeAddr2
+        fakeNodeAddr1,
+        ScType.EdgeDCommonVar,
+        [ScType.NodeVarStruct, circuitDialogAlias],
+        ScType.EdgeAccessVarPosPerm,
+        fakeNodeAddr2
     );
     template.triple(circuitDialogAlias, ScType.EdgeAccessVarPosPerm, [
       ScType.NodeVar,
@@ -609,39 +622,39 @@ describe("ScClient", () => {
     expect(res).toBeInstanceOf(ScTemplateResult);
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "generate_template",
-        payload: expect.objectContaining({
-          templ: expect.arrayContaining([
-            expect.arrayContaining([
-              { type: "addr", value: fakeNodeAddr1.value },
-              {
-                alias: expect.any(String),
-                type: "type",
-                value: ScType.EdgeDCommonVar.value,
-              },
-              {
-                alias: circuitDialogAlias,
-                type: "type",
-                value: ScType.NodeVarStruct.value,
-              },
+        expect.objectContaining({
+          type: "generate_template",
+          payload: expect.objectContaining({
+            templ: expect.arrayContaining([
+              expect.arrayContaining([
+                {type: "addr", value: fakeNodeAddr1.value},
+                {
+                  alias: expect.any(String),
+                  type: "type",
+                  value: ScType.EdgeDCommonVar.value,
+                },
+                {
+                  alias: circuitDialogAlias,
+                  type: "type",
+                  value: ScType.NodeVarStruct.value,
+                },
+              ]),
+              expect.arrayContaining([
+                {type: "addr", value: fakeNodeAddr2.value},
+                {type: "type", value: ScType.EdgeAccessVarPosPerm.value},
+                {type: "alias", value: expect.any(String)},
+              ]),
+              expect.arrayContaining([
+                {type: "alias", value: circuitDialogAlias},
+                {type: "type", value: ScType.EdgeAccessVarPosPerm.value},
+                {alias: dialog, type: "type", value: ScType.NodeVar.value},
+              ]),
             ]),
-            expect.arrayContaining([
-              { type: "addr", value: fakeNodeAddr2.value },
-              { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
-              { type: "alias", value: expect.any(String) },
-            ]),
-            expect.arrayContaining([
-              { type: "alias", value: circuitDialogAlias },
-              { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
-              { alias: dialog, type: "type", value: ScType.NodeVar.value },
-            ]),
-          ]),
-          params: {
-            [dialog]: fakeParamAddr.value,
-          },
+            params: {
+              [dialog]: fakeParamAddr.value,
+            },
+          }),
         }),
-      }),
     );
   });
 
@@ -652,13 +665,13 @@ describe("ScClient", () => {
     expect(res).toBeInstanceOf(ScTemplateResult);
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "generate_template",
-        payload: expect.objectContaining({
-          templ: "concept_node _-> _node1;;",
-          params: {},
+        expect.objectContaining({
+          type: "generate_template",
+          payload: expect.objectContaining({
+            templ: "concept_node _-> _node1;;",
+            params: {},
+          }),
         }),
-      }),
     );
   });
 
@@ -683,19 +696,19 @@ describe("ScClient", () => {
     expect(res).toBeInstanceOf(ScTemplateResult);
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "generate_template",
-        payload: expect.objectContaining({
-          templ: expect.objectContaining({
-            type: "idtf",
-            value: "test_template_1",
+        expect.objectContaining({
+          type: "generate_template",
+          payload: expect.objectContaining({
+            templ: expect.objectContaining({
+              type: "idtf",
+              value: "test_template_1",
+            }),
+            params: {
+              ["_node1"]: fakeNodeAddr1.value,
+              ["_node2"]: fakeNodeAddr2.value,
+            },
           }),
-          params: {
-            ["_node1"]: fakeNodeAddr1.value,
-            ["_node2"]: fakeNodeAddr2.value,
-          },
         }),
-      }),
     );
   });
 
@@ -720,19 +733,19 @@ describe("ScClient", () => {
     expect(res).toBeInstanceOf(ScTemplateResult);
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "generate_template",
-        payload: expect.objectContaining({
-          templ: expect.objectContaining({
-            type: "addr",
-            value: fakeTemplateAddr.value,
+        expect.objectContaining({
+          type: "generate_template",
+          payload: expect.objectContaining({
+            templ: expect.objectContaining({
+              type: "addr",
+              value: fakeTemplateAddr.value,
+            }),
+            params: {
+              ["_node1"]: fakeNodeAddr1.value,
+              ["_node2"]: "test_node",
+            },
           }),
-          params: {
-            ["_node1"]: fakeNodeAddr1.value,
-            ["_node2"]: "test_node",
-          },
         }),
-      }),
     );
   });
 
@@ -749,14 +762,14 @@ describe("ScClient", () => {
     const fakeNodeAddr2 = addrs[1];
 
     const evtParams1 = new ScEventParams(
-      fakeNodeAddr1,
-      ScEventType.AddIngoingEdge,
-      eventCallback
+        fakeNodeAddr1,
+        ScEventType.AddIngoingEdge,
+        eventCallback
     );
     const evtParams2 = new ScEventParams(
-      fakeNodeAddr2,
-      ScEventType.RemoveIngoingEdge,
-      () => void 0
+        fakeNodeAddr2,
+        ScEventType.RemoveIngoingEdge,
+        () => void 0
     );
 
     const res = await client.eventsCreate([evtParams1, evtParams2]);
@@ -764,9 +777,9 @@ describe("ScClient", () => {
     const construction = new ScConstruction();
 
     construction.createEdge(
-      ScType.EdgeAccessConstPosPerm,
-      fakeNodeAddr2,
-      fakeNodeAddr1
+        ScType.EdgeAccessConstPosPerm,
+        fakeNodeAddr2,
+        fakeNodeAddr1
     );
 
     const edgeAddr = await client.createElements(construction);
@@ -775,28 +788,28 @@ describe("ScClient", () => {
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScEvent));
 
     expect(eventCallback).toHaveBeenCalledWith(
-      expect.any(ScAddr),
-      expect.any(ScAddr),
-      expect.any(ScAddr),
-      expect.any(Number)
+        expect.any(ScAddr),
+        expect.any(ScAddr),
+        expect.any(ScAddr),
+        expect.any(Number)
     );
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "events",
-        payload: expect.objectContaining({
-          create: expect.arrayContaining([
-            {
-              type: ScEventType.AddIngoingEdge,
-              addr: fakeNodeAddr1.value,
-            },
-            {
-              type: ScEventType.RemoveIngoingEdge,
-              addr: fakeNodeAddr2.value,
-            },
-          ]),
-        }),
-      })
+        expect.objectContaining({
+          type: "events",
+          payload: expect.objectContaining({
+            create: expect.arrayContaining([
+              {
+                type: ScEventType.AddIngoingEdge,
+                addr: fakeNodeAddr1.value,
+              },
+              {
+                type: ScEventType.RemoveIngoingEdge,
+                addr: fakeNodeAddr2.value,
+              },
+            ]),
+          }),
+        })
     );
   });
 
@@ -808,12 +821,12 @@ describe("ScClient", () => {
     expect(res).toBe(true);
 
     await expect(server).toReceiveMessage(
-      expect.objectContaining({
-        type: "events",
-        payload: expect.objectContaining({
-          delete: expect.arrayContaining(eventIds),
-        }),
-      })
+        expect.objectContaining({
+          type: "events",
+          payload: expect.objectContaining({
+            delete: expect.arrayContaining(eventIds),
+          }),
+        })
     );
   });
 });
