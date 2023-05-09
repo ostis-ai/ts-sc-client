@@ -1,21 +1,34 @@
 import WS from "jest-websocket-mock";
 import {
-    ScAddr, ScClient, ScConstruction, ScEvent, ScEventParams, ScEventType,
-    ScLinkContent, ScLinkContentType, ScTemplate, ScTemplateResult, ScType
+    ScAddr,
+    ScClient,
+    ScConstruction,
+    ScEvent,
+    ScEventParams,
+    ScEventType,
+    ScLinkContent,
+    ScLinkContentType,
+    ScTemplate,
+    ScTemplateResult,
+    ScType
 } from "../src";
 import {setupServer} from "./utils";
 
 const URL = "ws://localhost:1234";
 
-describe("Sc-client with mock sc-machine server", () => {
+describe("ScClient", () => {
     let client: ScClient;
     let server: WS;
 
     beforeEach(async () => {
         server = new WS(URL, {jsonProtocol: true});
 
+        // create the mocked Websocket client
+        // because the default client from 'ws' cannot be mocked
+        const wsClient = new WebSocket(URL)
         setupServer(server);
-        client = new ScClient(URL);
+        // @ts-ignore
+        client = new ScClient(wsClient);
 
         await server.connected;
     });
@@ -95,8 +108,14 @@ describe("Sc-client with mock sc-machine server", () => {
             expect.objectContaining({
                 type: "create_elements_by_scs",
                 payload: expect.arrayContaining([
-                    "my_class -> node1;;",
-                    "my_class -> rrel_1: node1;;",
+                    {
+                        scs: "my_class -> node1;;",
+                        output_structure: 0
+                    },
+                    {
+                        scs: "my_class -> rrel_1: node1;;",
+                        output_structure: 0
+                    },
                 ]),
             })
         );
@@ -112,7 +131,76 @@ describe("Sc-client with mock sc-machine server", () => {
             expect.objectContaining({
                 type: "create_elements_by_scs",
                 payload: expect.arrayContaining([
-                    "->;;",
+                    {
+                        scs: "->;;",
+                        output_structure: 0
+                    },
+                ]),
+            })
+        );
+    });
+
+    test("createElementsBySCsWithOutputStruct", async () => {
+        const construction = new ScConstruction();
+        construction.createNode(ScType.NodeConst)
+        const addrs = await client.createElements(construction);
+        await server.nextMessage;
+
+        const res = await client.createElementsBySCs([{scs: "my_class -> node1;;", output_structure: addrs[0]}]);
+
+        expect(res).toHaveLength(1);
+
+        await expect(server).toReceiveMessage(
+            expect.objectContaining({
+                type: "create_elements_by_scs",
+                payload: expect.arrayContaining([
+                    {
+                        scs: "my_class -> node1;;",
+                        output_structure: 0
+                    },
+                ]),
+            })
+        );
+    });
+
+    test("createElementsBySCsWithOutputStructNewScAddr", async () => {
+        const res = await client.createElementsBySCs([{scs: "my_class -> node1;;", output_structure: new ScAddr(0)}]);
+
+        expect(res).toHaveLength(1);
+
+        await expect(server).toReceiveMessage(
+            expect.objectContaining({
+                type: "create_elements_by_scs",
+                payload: expect.arrayContaining([
+                    {
+                        scs: "my_class -> node1;;",
+                        output_structure: 0
+                    },
+                ]),
+            })
+        );
+    });
+
+    test("createElementsBySCsWithOutputStructNewScAddr", async () => {
+        const res = await client.createElementsBySCs([{
+            scs: "my_class -> node1;;",
+            output_structure: new ScAddr(1)
+        }, {scs: "my_class -> node2;;", output_structure: new ScAddr(2)}]);
+
+        expect(res).toHaveLength(2);
+
+        await expect(server).toReceiveMessage(
+            expect.objectContaining({
+                type: "create_elements_by_scs",
+                payload: expect.arrayContaining([
+                    {
+                        scs: "my_class -> node1;;",
+                        output_structure: 1
+                    },
+                    {
+                        scs: "my_class -> node2;;",
+                        output_structure: 2
+                    }
                 ]),
             })
         );
