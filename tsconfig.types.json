@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "version": "1.6.2",
+  "compilerOptions": {
+    "outDir": "./build/types",
+    "declaration": true,
+    "emitDeclarationOnly": true
+  }
+}
