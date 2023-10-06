@@ -1,4 +1,5 @@
 const path = require("path");
+const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   mode: "none",
@@ -18,7 +19,7 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".js"],
   },
-  externalsPresets: { node: true },
+  externals: [nodeExternals()],
   output: {
     filename: "sc.js",
     path: path.resolve(process.cwd(), "build"),
