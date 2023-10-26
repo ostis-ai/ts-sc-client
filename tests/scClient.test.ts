@@ -92,7 +92,10 @@ describe("ScClient", () => {
   });
 
   test("createElementsBySCs", async () => {
-    const res = await client.createElementsBySCs(["my_class -> node1;;", "my_class -> rrel_1: node1;;"]);
+    const res = await client.createElementsBySCs([
+      "my_class -> node1;;",
+      "my_class -> rrel_1: node1;;",
+    ]);
 
     expect(res).toHaveLength(2);
 
@@ -102,11 +105,11 @@ describe("ScClient", () => {
         payload: expect.arrayContaining([
           {
             scs: "my_class -> node1;;",
-            output_structure: 0
+            output_structure: 0,
           },
           {
             scs: "my_class -> rrel_1: node1;;",
-            output_structure: 0
+            output_structure: 0,
           },
         ]),
       })
@@ -114,8 +117,12 @@ describe("ScClient", () => {
   });
 
   test("createElementsBySCsUnsuccessful", async () => {
-    client.createElementsBySCs(["->;;"])
-      .then(null).catch((errors) => { expect(errors).toHaveLength(1); });
+    client
+      .createElementsBySCs(["->;;"])
+      .then(null)
+      .catch((errors) => {
+        expect(errors).toHaveLength(1);
+      });
 
     await expect(server).toReceiveMessage(
       expect.objectContaining({
@@ -123,7 +130,7 @@ describe("ScClient", () => {
         payload: expect.arrayContaining([
           {
             scs: "->;;",
-            output_structure: 0
+            output_structure: 0,
           },
         ]),
       })
@@ -132,11 +139,13 @@ describe("ScClient", () => {
 
   test("createElementsBySCsWithOutputStruct", async () => {
     const construction = new ScConstruction();
-    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConst);
     const addrs = await client.createElements(construction);
     await server.nextMessage;
 
-    const res = await client.createElementsBySCs([{ scs: "my_class -> node1;;", output_structure: addrs[0] }]);
+    const res = await client.createElementsBySCs([
+      { scs: "my_class -> node1;;", output_structure: addrs[0] },
+    ]);
 
     expect(res).toHaveLength(1);
 
@@ -146,7 +155,7 @@ describe("ScClient", () => {
         payload: expect.arrayContaining([
           {
             scs: "my_class -> node1;;",
-            output_structure: 0
+            output_structure: 0,
           },
         ]),
       })
@@ -154,7 +163,9 @@ describe("ScClient", () => {
   });
 
   test("createElementsBySCsWithOutputStructNewScAddr", async () => {
-    const res = await client.createElementsBySCs([{ scs: "my_class -> node1;;", output_structure: new ScAddr(0) }]);
+    const res = await client.createElementsBySCs([
+      { scs: "my_class -> node1;;", output_structure: new ScAddr(0) },
+    ]);
 
     expect(res).toHaveLength(1);
 
@@ -164,7 +175,7 @@ describe("ScClient", () => {
         payload: expect.arrayContaining([
           {
             scs: "my_class -> node1;;",
-            output_structure: 0
+            output_structure: 0,
           },
         ]),
       })
@@ -172,7 +183,10 @@ describe("ScClient", () => {
   });
 
   test("createElementsBySCsWithOutputStructNewScAddr", async () => {
-    const res = await client.createElementsBySCs([{ scs: "my_class -> node1;;", output_structure: new ScAddr(1) }, { scs: "my_class -> node2;;", output_structure: new ScAddr(2) }]);
+    const res = await client.createElementsBySCs([
+      { scs: "my_class -> node1;;", output_structure: new ScAddr(1) },
+      { scs: "my_class -> node2;;", output_structure: new ScAddr(2) },
+    ]);
 
     expect(res).toHaveLength(2);
 
@@ -182,12 +196,12 @@ describe("ScClient", () => {
         payload: expect.arrayContaining([
           {
             scs: "my_class -> node1;;",
-            output_structure: 1
+            output_structure: 1,
           },
           {
             scs: "my_class -> node2;;",
-            output_structure: 2
-          }
+            output_structure: 2,
+          },
         ]),
       })
     );
@@ -195,8 +209,8 @@ describe("ScClient", () => {
 
   test("deleteElements", async () => {
     const construction = new ScConstruction();
-    construction.createNode(ScType.NodeConst)
-    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
     const addrs = await client.createElements(construction);
     await server.nextMessage;
 
@@ -220,8 +234,8 @@ describe("ScClient", () => {
 
   test("checkElements", async () => {
     const construction = new ScConstruction();
-    construction.createNode(ScType.NodeConst)
-    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
     const addrs = await client.createElements(construction);
     await server.nextMessage;
 
@@ -246,12 +260,19 @@ describe("ScClient", () => {
 
   test("setContent", async () => {
     const construction = new ScConstruction();
-    construction.createLink(ScType.LinkConst, new ScLinkContent("old_content", ScLinkContentType.String));
+    construction.createLink(
+      ScType.LinkConst,
+      new ScLinkContent("old_content", ScLinkContentType.String)
+    );
     const addrs = await client.createElements(construction);
     await server.nextMessage;
 
     const content = "new_content";
-    const linkContent = new ScLinkContent(content, ScLinkContentType.String, addrs[0]);
+    const linkContent = new ScLinkContent(
+      content,
+      ScLinkContentType.String,
+      addrs[0]
+    );
 
     const res = await client.setLinkContents([linkContent]);
 
@@ -276,7 +297,10 @@ describe("ScClient", () => {
   test("getContent", async () => {
     const content = "my_content";
     const construction = new ScConstruction();
-    construction.createLink(ScType.LinkConst, new ScLinkContent(content, ScLinkContentType.String));
+    construction.createLink(
+      ScType.LinkConst,
+      new ScLinkContent(content, ScLinkContentType.String)
+    );
     const addrs = await client.createElements(construction);
     await server.nextMessage;
 
@@ -310,7 +334,9 @@ describe("ScClient", () => {
     expect(res[0][0]).toBeInstanceOf(ScAddr);
     expect(res[1][0]).toBeInstanceOf(ScAddr);
 
-    res.forEach((resItem) => resItem.forEach((resItem) => expect(resItem).toBeInstanceOf(ScAddr)));
+    res.forEach((resItem) =>
+      resItem.forEach((resItem) => expect(resItem).toBeInstanceOf(ScAddr))
+    );
 
     await expect(server).toReceiveMessage(
       expect.objectContaining({
@@ -333,13 +359,18 @@ describe("ScClient", () => {
     const linkContent1 = "con";
     const linkContent2 = "content";
 
-    const res = await client.getLinksByContentSubstrings([linkContent1, linkContent2]);
+    const res = await client.getLinksByContentSubstrings([
+      linkContent1,
+      linkContent2,
+    ]);
 
     expect(res).toHaveLength(2);
     expect(res[0][0]).toBeInstanceOf(ScAddr);
     expect(res[1][0]).toBeInstanceOf(ScAddr);
 
-    res.forEach((resItem) => resItem.forEach((resItem) => expect(resItem).toBeInstanceOf(ScAddr)));
+    res.forEach((resItem) =>
+      resItem.forEach((resItem) => expect(resItem).toBeInstanceOf(ScAddr))
+    );
 
     await expect(server).toReceiveMessage(
       expect.objectContaining({
@@ -362,7 +393,10 @@ describe("ScClient", () => {
     const linkContent1 = "test_content1";
     const linkContent2 = "test_content2";
 
-    const res = await client.getLinksContentsByContentSubstrings([linkContent1, linkContent2]);
+    const res = await client.getLinksContentsByContentSubstrings([
+      linkContent1,
+      linkContent2,
+    ]);
 
     expect(res).toHaveLength(2);
 
@@ -412,8 +446,8 @@ describe("ScClient", () => {
 
   test("templateSearch", async () => {
     const construction = new ScConstruction();
-    construction.createNode(ScType.NodeConst)
-    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
     const addrs = await client.createElements(construction);
     await server.nextMessage;
 
@@ -473,7 +507,7 @@ describe("ScClient", () => {
             ]),
           ]),
         }),
-      }),
+      })
     );
   });
 
@@ -491,14 +525,14 @@ describe("ScClient", () => {
           templ: "concept_node _-> _node1;;",
           params: {},
         }),
-      }),
+      })
     );
   });
 
   test("templateSearchByString", async () => {
     const construction = new ScConstruction();
-    construction.createNode(ScType.NodeConst)
-    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
     const addrs = await client.createElements(construction);
     await server.nextMessage;
 
@@ -529,14 +563,14 @@ describe("ScClient", () => {
             ["_node2"]: fakeNodeAddr2.value,
           },
         }),
-      }),
+      })
     );
   });
 
   test("templateSearchByAddr", async () => {
     const construction = new ScConstruction();
-    construction.createNode(ScType.NodeConst)
-    construction.createNode(ScType.NodeConstStruct)
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConstStruct);
     const addrs = await client.createElements(construction);
     await server.nextMessage;
 
@@ -567,7 +601,7 @@ describe("ScClient", () => {
             ["_node2"]: "test_node",
           },
         }),
-      }),
+      })
     );
   });
 
@@ -641,7 +675,7 @@ describe("ScClient", () => {
             [dialog]: fakeParamAddr.value,
           },
         }),
-      }),
+      })
     );
   });
 
@@ -658,14 +692,14 @@ describe("ScClient", () => {
           templ: "concept_node _-> _node1;;",
           params: {},
         }),
-      }),
+      })
     );
   });
 
   test("templateGenerateByString", async () => {
     const construction = new ScConstruction();
-    construction.createNode(ScType.NodeConst)
-    construction.createNode(ScType.NodeConst)
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
     const addrs = await client.createElements(construction);
     await server.nextMessage;
 
@@ -695,14 +729,14 @@ describe("ScClient", () => {
             ["_node2"]: fakeNodeAddr2.value,
           },
         }),
-      }),
+      })
     );
   });
 
   test("templateGenerateByAddr", async () => {
     const construction = new ScConstruction();
-    construction.createNode(ScType.NodeConst)
-    construction.createNode(ScType.NodeConstStruct)
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConstStruct);
     const addrs = await client.createElements(construction);
     await server.nextMessage;
 
@@ -732,7 +766,7 @@ describe("ScClient", () => {
             ["_node2"]: "test_node",
           },
         }),
-      }),
+      })
     );
   });
 
@@ -815,5 +849,16 @@ describe("ScClient", () => {
         }),
       })
     );
+  });
+
+  test("findKeynodes. Correct output", async () => {
+    const res = await client.findKeynodes("aa_bb", "cc_d", "f");
+    expect(Object.keys(res)).toEqual(["aaBb", "ccD", "f"]);
+    Object.values(res).forEach((value) => expect(value).toBeInstanceOf(ScAddr));
+  });
+
+  test("findKeynodes. Correct cache implementation", async () => {
+    // TODO: test correct cacheing. Check if server receives messages only for new keynodes
+    expect(1).toBe(1);
   });
 });

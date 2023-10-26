@@ -359,6 +359,34 @@ Destroy an event. Input arguments are event ids returned by eventsCreate method.
     await client.eventsDestroy(eventIds);
 ```
 
+## `client.findKeynodes(...keynodesInShakeCase: string[]): { keynodesInCamelCase: ScAddr }`
+
+This method is a wrapper on resolveKeynodes. It returns object with specified keynodes strings as described bellow. Also it caches requested keynodes.
+
+Cache implementation works as follows:
+
+- First, there is no keynodes in cache.
+- Keynodes `a` and `b` is requested and put in the cache
+- Then keynodes `b`, `c` is requested. `b` will be returned emideately from cache and `c` will fire server request
+
+
+```ts
+    import { client } from "../path-to-client";
+
+    const someIncredibleFunction = async () => {
+        // Keynodes from arguments put to object
+        const obj = await client.findKeynodes("lang_ru", "some_other_Keynode");
+        
+        // Shake case is transformed to camel case. 
+        const { langRu, someOtherKeynode } = obj;
+
+        // lang_ru returned from cache, one_more_keynode is requested from server
+        const { langRu, oneMoreKeynode } = await client.findKeynodes("lang_ru", "one_more_keynode");
+    }
+
+    someIncredibleFunction();
+```
+
 # ScAddr
 Simple abstraction over address in sc-memory.
 

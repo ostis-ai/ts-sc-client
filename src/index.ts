@@ -9,5 +9,6 @@ export * from "./ScSet";
 export * from "./ScTemplate";
 export * from "./ScTemplateResult";
 export * from "./ScType";
+export * from "./ScHelpers";
 export * from "./constants";
 export * from "./errors";

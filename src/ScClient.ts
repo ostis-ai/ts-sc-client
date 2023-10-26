@@ -7,8 +7,32 @@ import { ScLinkContent, TContentString } from "./ScLinkContent";
 import { ScTemplate, ScTemplateValue } from "./ScTemplate";
 import { ScTemplateResult } from "./ScTemplateResult";
 import { ScType } from "./ScType";
-import { ScError, IEdge, ILink, INode, TCheckElementsArgs, TGetContentArgs, TSetContentArgs, TGetLinksArgs, TGetStringsArgs, TCreateElementsArgs, TCreateElementsBySCsArgs, TDeleteElementsArgs, TWSCallback, TAction, TKeynodesElementsArgs, TTemplateSearchArgs, TTripleItem, TTemplateGenerateArgs, TCreateEventArgs, TDeleteEventArgs, ISCs } from "./types";
-import { transformEdgeInfo } from "./utils";
+import {
+  ScError,
+  IEdge,
+  ILink,
+  INode,
+  TCheckElementsArgs,
+  TGetContentArgs,
+  TSetContentArgs,
+  TGetLinksArgs,
+  TGetStringsArgs,
+  TCreateElementsArgs,
+  TCreateElementsBySCsArgs,
+  TDeleteElementsArgs,
+  TWSCallback,
+  TAction,
+  TKeynodesElementsArgs,
+  TTemplateSearchArgs,
+  TTripleItem,
+  TTemplateGenerateArgs,
+  TCreateEventArgs,
+  TDeleteEventArgs,
+  ISCs,
+} from "./types";
+import { shiftMap, snakeToCamelCase, transformEdgeInfo } from "./utils";
+import { KeynodesToObject } from "./types";
+import { DEFAULT_KEYNODES_CASHE_SIZE } from "./constants";
 
 export interface Response<T = any> {
   id: number;
@@ -31,14 +55,24 @@ interface KeynodeParam<ParamId extends string = string> {
 
 type SocketEvent = "close" | "error" | "open";
 
+interface IParams {
+  keynodesCasheSize?: number;
+}
+
+const defaultParams: IParams = {
+  keynodesCasheSize: DEFAULT_KEYNODES_CASHE_SIZE,
+};
+
 export class ScClient {
   private _eventID: number;
   private _messageQueue: Array<() => void>;
   private _socket: WebSocket;
   private _callbacks: Record<number, TWSCallback>;
   private _events: Record<number, ScEvent>;
+  private _keynodesCache: Map<string, ScAddr>;
+  private _keynodesCacheSize: number;
 
-  constructor(arg: string | WebSocket) {
+  constructor(arg: string | WebSocket, params = defaultParams) {
     this._socket = typeof arg === "string" ? new WebSocket(arg) : arg;
     this._socket.onmessage = this.onMessage;
     this._socket.onopen = this.sendMessagesFromQueue;
@@ -47,6 +81,9 @@ export class ScClient {
     this._callbacks = {};
     this._events = {};
     this._eventID = 1;
+    this._keynodesCacheSize =
+      params.keynodesCasheSize ?? DEFAULT_KEYNODES_CASHE_SIZE;
+    this._keynodesCache = new Map<string, ScAddr>();
   }
 
   public addEventListener(evt: SocketEvent, cb: () => void) {
@@ -71,7 +108,12 @@ export class ScClient {
       const evt = this._events[cmdID];
 
       if (evt) {
-        evt.callback?.(new ScAddr(data.payload[0]), new ScAddr(data.payload[1]), new ScAddr(data.payload[2]), evt.id);
+        evt.callback?.(
+          new ScAddr(data.payload[0]),
+          new ScAddr(data.payload[1]),
+          new ScAddr(data.payload[2]),
+          evt.id
+        );
       } else {
         throw `Can't find callback for an event ${cmdID}`;
       }
@@ -100,7 +142,11 @@ export class ScClient {
   private sendMessage(...args: TCreateEventArgs): void;
   private sendMessage(...args: TDeleteEventArgs): void;
 
-  private sendMessage(actionType: string, payload: unknown, callback: TWSCallback<any>): void {
+  private sendMessage(
+    actionType: string,
+    payload: unknown,
+    callback: TWSCallback<any>
+  ): void {
     this._eventID++;
 
     if (this._callbacks[this._eventID]) {
@@ -123,12 +169,20 @@ export class ScClient {
     sendData();
   }
 
-  private resolveOrReject(resolve: (arg: any) => void, reject: (arg: string | string[]) => void, success: any, errors: ScError) {
+  private resolveOrReject(
+    resolve: (arg: any) => void,
+    reject: (arg: string | string[]) => void,
+    success: any,
+    errors: ScError
+  ) {
     if (errors.length === 0) {
       return resolve(success);
     }
 
-    const transformedErrors = typeof errors === 'string' ? errors : errors.map(({ message }) => message);
+    const transformedErrors =
+      typeof errors === "string"
+        ? errors
+        : errors.map(({ message }) => message);
     return reject(transformedErrors);
   }
 
@@ -187,13 +241,20 @@ export class ScClient {
     return new Promise<boolean[]>((resolve, reject) => {
       const payload = scsText.map((scsString) => {
         if (typeof scsString === "string") {
-          return { scs: scsString, output_structure: 0 }
+          return { scs: scsString, output_structure: 0 };
         }
-        return { scs: scsString.scs, output_structure: scsString.output_structure?.value}
-      })
-      this.sendMessage("create_elements_by_scs", payload, ({ payload, errors }) => {
-        this.resolveOrReject(resolve, reject, payload, errors);
+        return {
+          scs: scsString.scs,
+          output_structure: scsString.output_structure?.value,
+        };
       });
+      this.sendMessage(
+        "create_elements_by_scs",
+        payload,
+        ({ payload, errors }) => {
+          this.resolveOrReject(resolve, reject, payload, errors);
+        }
+      );
     });
   }
 
@@ -229,7 +290,10 @@ export class ScClient {
       }));
 
       this.sendMessage("content", payload, ({ payload, errors }) => {
-        const result = payload.map((res) => new ScLinkContent(res.value, ScLinkContent.stringToType(res.type)));
+        const result = payload.map(
+          (res) =>
+            new ScLinkContent(res.value, ScLinkContent.stringToType(res.type))
+        );
         this.resolveOrReject(resolve, reject, result, errors);
       });
     });
@@ -243,7 +307,9 @@ export class ScClient {
       }));
 
       this.sendMessage("content", payload, ({ payload, errors }) => {
-        const result = payload.map((slice) => slice.map((addr) => new ScAddr(addr)));
+        const result = payload.map((slice) =>
+          slice.map((addr) => new ScAddr(addr))
+        );
         this.resolveOrReject(resolve, reject, result, errors);
       });
     });
@@ -257,7 +323,9 @@ export class ScClient {
       }));
 
       this.sendMessage("content", payload, ({ payload, errors }) => {
-        const result = payload.map((slice) => slice.map((addr) => new ScAddr(addr)));
+        const result = payload.map((slice) =>
+          slice.map((addr) => new ScAddr(addr))
+        );
         this.resolveOrReject(resolve, reject, result, errors);
       });
     });
@@ -276,7 +344,9 @@ export class ScClient {
     });
   }
 
-  public async resolveKeynodes<ParamId extends string>(params: ReadonlyArray<KeynodeParam<ParamId>>) {
+  public async resolveKeynodes<ParamId extends string>(
+    params: ReadonlyArray<KeynodeParam<ParamId>>
+  ) {
     return new Promise<Record<ParamId, ScAddr>>((resolve, reject) => {
       const payload = params.map(({ id, type }) => {
         if (type.isValid()) {
@@ -325,8 +395,7 @@ export class ScClient {
       return { type: "addr", value: template.value };
     else if (typeof template === "string" && /^[a-z0-9_]+$/.test(template))
       return { type: "idtf", value: template };
-    else if (typeof template === "string")
-      return template;
+    else if (typeof template === "string") return template;
     else
       return template.triples.map(({ source, edge, target }) => [
         this.processTripleItem(source),
@@ -336,51 +405,64 @@ export class ScClient {
   }
 
   private processTemplateParams(params: Record<string, ScAddr | string>) {
-    return Object.keys(params).reduce(
-      (acc, key) => {
-        const param = params[key];
-        acc[key] = typeof param === "string" ? param : param.value;
-        return acc;
-      },
-      {} as Record<string, number | string>
-    );
+    return Object.keys(params).reduce((acc, key) => {
+      const param = params[key];
+      acc[key] = typeof param === "string" ? param : param.value;
+      return acc;
+    }, {} as Record<string, number | string>);
   }
 
-  public async templateSearch(template: ScTemplate | ScAddr | string, params: Record<string, ScAddr | string> = {}) {
+  public async templateSearch(
+    template: ScTemplate | ScAddr | string,
+    params: Record<string, ScAddr | string> = {}
+  ) {
     return new Promise<ScTemplateResult[]>(async (resolve, reject) => {
       const templ = this.processTemplate(template);
       const processedParams = this.processTemplateParams(params);
       const payload = { templ, params: processedParams };
-      this.sendMessage("search_template", payload, ({ payload, status, errors }) => {
-        if (!status) return resolve([]);
+      this.sendMessage(
+        "search_template",
+        payload,
+        ({ payload, status, errors }) => {
+          if (!status) return resolve([]);
 
-        const result = payload.addrs.map((addrs) => {
-          const templateAddrs = addrs.map((addr) => new ScAddr(addr));
-          return new ScTemplateResult(payload.aliases, templateAddrs);
-        });
-        this.resolveOrReject(resolve, reject, result, errors);
-      });
+          const result = payload.addrs.map((addrs) => {
+            const templateAddrs = addrs.map((addr) => new ScAddr(addr));
+            return new ScTemplateResult(payload.aliases, templateAddrs);
+          });
+          this.resolveOrReject(resolve, reject, result, errors);
+        }
+      );
     });
   }
 
-  public async templateGenerate(template: ScTemplate | ScAddr | string, params: Record<string, ScAddr | string> = {}) {
+  public async templateGenerate(
+    template: ScTemplate | ScAddr | string,
+    params: Record<string, ScAddr | string> = {}
+  ) {
     return new Promise<ScTemplateResult | null>(async (resolve, reject) => {
       const templ = this.processTemplate(template);
       const processedParams = this.processTemplateParams(params);
 
       const payload = { templ, params: processedParams };
 
-      this.sendMessage("generate_template", payload, ({ status, payload, errors }) => {
-        if (!status) resolve(null);
-        const addrs = payload.addrs.map((addr) => new ScAddr(addr));
-        const result = new ScTemplateResult(payload.aliases, addrs);
-        this.resolveOrReject(resolve, reject, result, errors);
-      });
+      this.sendMessage(
+        "generate_template",
+        payload,
+        ({ status, payload, errors }) => {
+          if (!status) resolve(null);
+          const addrs = payload.addrs.map((addr) => new ScAddr(addr));
+          const result = new ScTemplateResult(payload.aliases, addrs);
+          this.resolveOrReject(resolve, reject, result, errors);
+        }
+      );
     });
   }
 
   public async eventsCreate(eventOrEvents: ScEventParams[] | ScEventParams) {
-    const events = Array.isArray(eventOrEvents) ? eventOrEvents : [eventOrEvents];
+    const events = Array.isArray(eventOrEvents)
+      ? eventOrEvents
+      : [eventOrEvents];
 
     return new Promise<ScEvent[]>((resolve, reject) => {
       const payload = {
@@ -404,7 +486,9 @@ export class ScClient {
   }
 
   public async eventsDestroy(eventIdOrIds: number[] | number) {
-    const eventIds = Array.isArray(eventIdOrIds) ? eventIdOrIds : [eventIdOrIds];
+    const eventIds = Array.isArray(eventIdOrIds)
+      ? eventIdOrIds
+      : [eventIdOrIds];
 
     return new Promise<void>((resolve, reject) => {
       const payload = {
@@ -418,5 +502,42 @@ export class ScClient {
         this.resolveOrReject(resolve, reject, status, errors);
       });
     });
+  }
+
+  public async findKeynodes<K extends [string, ...string[]]>(
+    ...keynodes: K
+  ): Promise<KeynodesToObject<K>> {
+    const newKeynodes = keynodes
+      .filter((keynode) => !this._keynodesCache.get(keynode))
+      .map((keynode) => ({ id: keynode, type: ScType.NodeConst }));
+    const cacheKeynodes = keynodes.filter((keynode) =>
+      this._keynodesCache.get(keynode)
+    );
+
+    const overflow =
+      this._keynodesCache.size + newKeynodes.length - this._keynodesCacheSize;
+
+    if (overflow > 0) shiftMap(this._keynodesCache, overflow);
+
+    const foundKeynodes = newKeynodes.length
+      ? await this.resolveKeynodes(newKeynodes)
+      : [];
+
+    const foundKeynodesEntries = Object.entries(foundKeynodes);
+    const cacheKeynodesEntries = cacheKeynodes.map((keynode) => [
+      keynode,
+      this._keynodesCache.get(keynode),
+    ]);
+
+    foundKeynodesEntries.forEach(([key, value]) =>
+      this._keynodesCache.set(key, value)
+    );
+
+    const keynodesEntries = [...foundKeynodesEntries, ...cacheKeynodesEntries];
+    const transformedEntries = keynodesEntries.map(([key, value]) => [
+      snakeToCamelCase(key as string),
+      value,
+    ]);
+    return Object.fromEntries(transformedEntries);
   }
 }
