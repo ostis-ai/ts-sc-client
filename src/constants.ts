@@ -58,3 +58,5 @@ export const sc_type_node_struct_mask =
 
 export const sc_type_edge_mask =
   sc_type_edge_access | sc_type_dedge_common | sc_type_uedge_common;
+
+export const DEFAULT_KEYNODES_CASHE_SIZE = 5000;

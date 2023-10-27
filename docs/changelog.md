@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.4.0]
+### Added
+
+- FindKeynodes method
+- ScHelper class with methods: getMainIdentifierLinkAddr, getMainIdentifier, getScIdentifier, getAddrOrSystemIdentifierAddr, getAnswer, createLink
+
 ## [v0.3.2]
 ### Added
 

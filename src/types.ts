@@ -109,12 +109,12 @@ interface ITripleAlias {
 export type TTripleItem = ITripleAddr | ITripleType | ITripleAlias;
 
 interface ISearchTemplatePayload {
-  templ: TTripleItem[][] | { type: string; value: string | number; } | string;
+  templ: TTripleItem[][] | { type: string; value: string | number } | string;
   params: Record<string, number | string>;
 }
 
 interface IGenerateTemplatePayload {
-  templ: TTripleItem[][] | { type: string; value: string | number; } | string;
+  templ: TTripleItem[][] | { type: string; value: string | number } | string;
   params: Record<string, number | string>;
 }
 
@@ -223,3 +223,23 @@ export type TGetStringsArgs = Args<
   Array<IGetStringsBySubstringsPayload>,
   string[][]
 >;
+
+export type SnakeToCamelCase<T extends string> = string extends T
+  ? string
+  : T extends `${infer Start}_${infer Letter}${infer Rest}`
+  ? `${Start}${Uppercase<Letter>}${SnakeToCamelCase<Rest>}`
+  : T extends `${infer Str}`
+  ? `${Str}`
+  : "";
+
+export type KeynodesToObject<T extends string[]> = string[] extends T
+  ? Record<string, ScAddr>
+  : T extends [infer First, ...infer Rest]
+  ? Rest extends [string, ...string[]]
+    ? First extends string
+      ? Record<SnakeToCamelCase<First>, ScAddr> & KeynodesToObject<Rest>
+      : KeynodesToObject<Rest>
+    : First extends string
+    ? Record<SnakeToCamelCase<First>, ScAddr>
+    : Record<string, never>
+  : Record<string, never>;
