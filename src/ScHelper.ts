@@ -8,14 +8,14 @@ import { ScTemplate } from "./ScTemplate";
 import { ScType } from "./ScType";
 import { snakeToCamelCase } from "./utils";
 
-export class ScHelpers {
+export class ScHelper {
   private _client: ScClient;
 
   constructor(client: ScClient) {
     this._client = client;
   }
 
-  public async getMainIdLinkAddr(addr: ScAddr, lang: string) {
+  public async getMainIdentifierLinkAddr(addr: ScAddr, lang: string) {
     const { nrelMainIdtf, ...rest } = await this._client.findKeynodes(
       "nrel_main_idtf",
       lang
@@ -42,8 +42,8 @@ export class ScHelpers {
     return result[0].get(linkAlias);
   }
 
-  public async getMainId(addr: ScAddr, lang: string) {
-    const linkAddr = await this.getMainIdLinkAddr(addr, lang);
+  public async getMainIdentifier(addr: ScAddr, lang: string) {
+    const linkAddr = await this.getMainIdentifierLinkAddr(addr, lang);
 
     if (!linkAddr) return null;
 
@@ -51,7 +51,7 @@ export class ScHelpers {
     return contents[0].data;
   }
 
-  public async getSystemId(addr: ScAddr) {
+  public async getSystemIdentifier(addr: ScAddr) {
     const { nrelSystemIdentifier } = await this._client.findKeynodes(
       "nrel_system_identifier"
     );
@@ -77,17 +77,17 @@ export class ScHelpers {
     return String(contents[0].data);
   }
 
-  public async getScId(addr: ScAddr, lang: string) {
-    const mainId = await this.getMainId(addr, lang);
+  public async getScIdentifier(addr: ScAddr, lang: string) {
+    const mainId = await this.getMainIdentifier(addr, lang);
     if (mainId) return String(mainId);
 
-    const systemId = await this.getSystemId(addr);
+    const systemId = await this.getSystemIdentifier(addr);
     if (systemId) return String(systemId);
 
     return String(addr.value);
   }
 
-  public async addrOrSystemIdAddr(addrOrSystemId: string | number) {
+  public async getAddrOrSystemIdentifierAddr(addrOrSystemId: string | number) {
     const numericAddr = Number(addrOrSystemId);
     if (numericAddr) return numericAddr;
     const keynodes = await this._client.findKeynodes(String(addrOrSystemId));

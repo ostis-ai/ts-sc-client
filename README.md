@@ -367,7 +367,7 @@ Cache implementation works as follows:
 
 - First, there is no keynodes in cache.
 - Keynodes `a` and `b` is requested and put in the cache
-- Then keynodes `b`, `c` is requested. `b` will be returned emideately from cache and `c` will fire server request
+- Then keynodes `b`, `c` is requested. `b` will be returned immediately from cache and `c` will fire server request
 
 
 ```ts
@@ -375,7 +375,7 @@ Cache implementation works as follows:
 
     const someIncredibleFunction = async () => {
         // Keynodes from arguments put to object
-        const obj = await client.findKeynodes("lang_ru", "some_other_Keynode");
+        const obj = await client.findKeynodes("lang_ru", "some_other_keynode");
         
         // Shake case is transformed to camel case. 
         const { langRu, someOtherKeynode } = obj;

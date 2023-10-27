@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - FindKeynodes method
-- ScHelpers class
+- ScHelper class with methods: getMainIdentifierLinkAddr, getMainIdentifier, getScIdentifier, getAddrOrSystemIdentifierAddr, getAnswer, createLink
 
 ## [v0.3.2]
 ### Added
