@@ -29,6 +29,12 @@ describe("ScClient", () => {
     WS.clean();
   });
 
+  test("getUser", async () => {
+    const userAddr = await client.getUser();
+    expect(userAddr).toBeInstanceOf(ScAddr);
+    expect(userAddr.isValid()).toBe(true);
+  });
+
   test("createElements", async () => {
     const preparationConstruction = new ScConstruction();
     preparationConstruction.createNode(ScType.NodeConst);

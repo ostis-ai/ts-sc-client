@@ -9,6 +9,11 @@ interface ScServerError {
 
 export type ScError = string | ScServerError[];
 
+export interface IConnectionInfo {
+  connection_id: number;
+  user_addr: number;
+}
+
 export interface IContentResult {
   value: number | string;
   type: TContentString;
@@ -149,6 +154,7 @@ export interface Response<
 }
 
 export type TAction =
+  | "connection_info"
   | "create_elements"
   | "create_elements_by_scs"
   | "check_elements"
@@ -172,6 +178,7 @@ type Args<
   Event extends boolean = boolean
 > = [Action, Payload, TWSCallback<ResponsePayload, Event>];
 
+export type TConnectionInfoArgs = Args<"connection_info", void, IConnectionInfo>
 export type TCheckElementsArgs = Args<"check_elements", number[], number[]>;
 export type TDeleteElementsArgs = Args<"delete_elements", number[], unknown>;
 export type TKeynodesElementsArgs = Args<

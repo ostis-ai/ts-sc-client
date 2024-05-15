@@ -29,6 +29,7 @@ import {
   TCreateEventArgs,
   TDeleteEventArgs,
   ISCs,
+  TConnectionInfoArgs,
 } from "./types";
 import { shiftMap, snakeToCamelCase, transformEdgeInfo } from "./utils";
 import { KeynodesToObject } from "./types";
@@ -128,6 +129,7 @@ export class ScClient {
     }
   };
 
+  private sendMessage(...args: TConnectionInfoArgs): void;
   private sendMessage(...args: TDeleteElementsArgs): void;
   private sendMessage(...args: TCreateElementsArgs): void;
   private sendMessage(...args: TCreateElementsBySCsArgs): void;
@@ -184,6 +186,15 @@ export class ScClient {
         ? errors
         : errors.map(({ message }) => message);
     return reject(transformedErrors);
+  }
+
+  public async getUser() {
+    return new Promise<ScAddr>((resolve, reject) => {
+      this.sendMessage("connection_info", undefined, ({ payload, errors }) => {
+        const result = new ScAddr(payload.user_addr)
+        this.resolveOrReject(resolve, reject, result, errors);
+      });
+    });
   }
 
   public async checkElements(addrs: ScAddr[]) {
