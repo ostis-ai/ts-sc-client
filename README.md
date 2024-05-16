@@ -16,6 +16,17 @@ First of all one should create client instance. To do so:
     const client = new ScClient('https://your-knowledge-base-websocket-url');
 ```
 
+Since sc-machine [0.10.0](https://github.com/ostis-ai/sc-machine/tree/user_permissions), you can use user permissions API. 
+See [docs about this functionality](https://ostis-ai.github.io/sc-machine/https://ostis-ai.github.io/sc-machine/sc-memory/api/cpp/extended/user_permissions_api/).
+
+To get user from session use:
+
+```ts
+    import { client } from "../path-to-client";
+
+    const userAddr = client.getUser();
+```
+
 By default client is browser based, so it uses `window.WebSocket` class. When using with node js one may pass custom websocket instanse
 
 ```ts
