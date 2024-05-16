@@ -4,6 +4,9 @@ import WS from "jest-websocket-mock";
 const EVENT_ID = 7;
 
 const getMockAnswerPayload = (data: Request) => {
+  if (data.type === "connection_info") {
+    return {connection_id: 1, user_addr: 12345};
+  }
   if (data.type === "create_elements") {
     return data.payload.map((_: any, ind: number) => ind);
   }
