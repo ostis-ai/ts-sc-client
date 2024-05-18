@@ -190,8 +190,8 @@ export class ScClient {
 
   public async getUser() {
     return new Promise<ScAddr>((resolve, reject) => {
-      this.sendMessage("connection_info", undefined, ({ payload, errors }) => {
-        const result = new ScAddr(payload.user_addr)
+      this.sendMessage("connection_info", null, ({ payload, errors }) => {
+        const result = new ScAddr(payload.user_addr);
         this.resolveOrReject(resolve, reject, result, errors);
       });
     });
