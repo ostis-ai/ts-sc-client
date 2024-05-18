@@ -178,7 +178,7 @@ type Args<
   Event extends boolean = boolean
 > = [Action, Payload, TWSCallback<ResponsePayload, Event>];
 
-export type TConnectionInfoArgs = Args<"connection_info", void, IConnectionInfo>
+export type TConnectionInfoArgs = Args<"connection_info", null, IConnectionInfo>
 export type TCheckElementsArgs = Args<"check_elements", number[], number[]>;
 export type TDeleteElementsArgs = Args<"delete_elements", number[], unknown>;
 export type TKeynodesElementsArgs = Args<
