@@ -9,12 +9,16 @@ export type ScEventCallbackFunc = (
 
 export enum ScEventType {
   Unknown = "unknown",
-  AfterGenerateOutgoingArc = "add_outgoing_edge",
-  AfterGenerateIncomingArc = "add_ingoing_edge",
-  BeforeEraseOutgoingArc = "remove_outgoing_edge",
-  BeforeEraseIncomingArc = "remove_ingoing_edge",
-  BeforeEraseElement = "delete_element",
-  BeforeChangeLinkContent = "content_change",
+  AfterGenerateConnector = "sc_event_after_generate_connector",
+  AfterGenerateOutgoingArc = "sc_event_after_generate_outgoing_arc",
+  AfterGenerateIncomingArc = "sc_event_after_generate_incoming_arc",
+  AfterGenerateEdge = "sc_event_after_generate_edge",
+  BeforeEraseConnector = "sc_event_before_erase_connector",
+  BeforeEraseOutgoingArc = "sc_event_before_erase_outgoing_arc",
+  BeforeEraseIncomingArc = "sc_event_before_erase_incoming_arc",
+  BeforeEraseEdge = "sc_event_before_erase_edge",
+  BeforeEraseElement = "sc_event_before_erase_element",
+  BeforeChangeLinkContent = "sc_event_before_change_link_content",
 }
 
 export class ScEventSubscription {
