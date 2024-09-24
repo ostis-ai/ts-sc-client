@@ -1,37 +1,37 @@
 import { invalidValue } from "./errors";
 import { ScAddr } from "./ScAddr";
 import { ScConstruction } from "./ScConstruction";
-import { ScEvent } from "./ScEvent";
-import { ScEventParams } from "./ScEventParams";
+import { ScEventSubscription } from "./ScEventSubscription";
+import { ScEventSubscriptionParams } from "./ScEventSubscriptionParams";
 import { ScLinkContent, TContentString } from "./ScLinkContent";
 import { ScTemplate, ScTemplateValue } from "./ScTemplate";
 import { ScTemplateResult } from "./ScTemplateResult";
 import { ScType } from "./ScType";
 import {
   ScError,
-  IEdge,
+  IConnector,
   ILink,
   INode,
-  TCheckElementsArgs,
+  TGetElementsTypesArgs,
   TGetContentArgs,
   TSetContentArgs,
-  TGetLinksArgs,
-  TGetStringsArgs,
-  TCreateElementsArgs,
-  TCreateElementsBySCsArgs,
-  TDeleteElementsArgs,
+  TSearchLinksArgs,
+  TSearchLinkContentsArgs,
+  TGenerateElementsArgs,
+  TGenerateElementsBySCsArgs,
+  TEraseElementsArgs,
   TWSCallback,
   TAction,
   TKeynodesElementsArgs,
-  TTemplateSearchArgs,
+  TSearchByTemplateArgs,
   TTripleItem,
-  TTemplateGenerateArgs,
-  TCreateEventArgs,
-  TDeleteEventArgs,
+  TGenerateByTemplateArgs,
+  TCreateEventSubscriptionsArgs,
+  TDestroyEventSubscriptionArgs,
   ISCs,
   TConnectionInfoArgs,
 } from "./types";
-import { shiftMap, snakeToCamelCase, transformEdgeInfo } from "./utils";
+import { shiftMap, snakeToCamelCase, transformConnectorInfo } from "./utils";
 import { KeynodesToObject } from "./types";
 import { DEFAULT_KEYNODES_CASHE_SIZE } from "./constants";
 
@@ -69,7 +69,7 @@ export class ScClient {
   private _messageQueue: Array<() => void>;
   private _socket: WebSocket;
   private _callbacks: Record<number, TWSCallback>;
-  private _events: Record<number, ScEvent>;
+  private _events: Record<number, ScEventSubscription>;
   private _keynodesCache: Map<string, ScAddr>;
   private _keynodesCacheSize: number;
 
@@ -130,19 +130,19 @@ export class ScClient {
   };
 
   private sendMessage(...args: TConnectionInfoArgs): void;
-  private sendMessage(...args: TDeleteElementsArgs): void;
-  private sendMessage(...args: TCreateElementsArgs): void;
-  private sendMessage(...args: TCreateElementsBySCsArgs): void;
-  private sendMessage(...args: TCheckElementsArgs): void;
+  private sendMessage(...args: TEraseElementsArgs): void;
+  private sendMessage(...args: TGenerateElementsArgs): void;
+  private sendMessage(...args: TGenerateElementsBySCsArgs): void;
+  private sendMessage(...args: TGetElementsTypesArgs): void;
   private sendMessage(...args: TGetContentArgs): void;
   private sendMessage(...args: TSetContentArgs): void;
-  private sendMessage(...args: TGetLinksArgs): void;
-  private sendMessage(...args: TGetStringsArgs): void;
+  private sendMessage(...args: TSearchLinksArgs): void;
+  private sendMessage(...args: TSearchLinkContentsArgs): void;
   private sendMessage(...args: TKeynodesElementsArgs): void;
-  private sendMessage(...args: TTemplateSearchArgs): void;
-  private sendMessage(...args: TTemplateGenerateArgs): void;
-  private sendMessage(...args: TCreateEventArgs): void;
-  private sendMessage(...args: TDeleteEventArgs): void;
+  private sendMessage(...args: TSearchByTemplateArgs): void;
+  private sendMessage(...args: TGenerateByTemplateArgs): void;
+  private sendMessage(...args: TCreateEventSubscriptionsArgs): void;
+  private sendMessage(...args: TDestroyEventSubscriptionArgs): void;
 
   private sendMessage(
     actionType: string,
@@ -197,7 +197,7 @@ export class ScClient {
     });
   }
 
-  public async checkElements(addrs: ScAddr[]) {
+  public async getElementTypes(addrs: ScAddr[]) {
     return new Promise<ScType[]>((resolve, reject) => {
       if (!addrs.length) return resolve([]);
 
@@ -210,7 +210,15 @@ export class ScClient {
     });
   }
 
-  public async createElements(construction: ScConstruction) {
+  /*!
+   * @deprecated ScClient `checkElements` method is deprecated. Use `getElementTypes` instead.
+   */
+  public async checkElements(addrs: ScAddr[]) {
+    console.warn("Warning: ScClient `checkElements` method is deprecated. Use `getElementTypes` instead.");
+    return this.getElementTypes(addrs);
+  }
+
+  public async generateElements(construction: ScConstruction) {
     return new Promise<ScAddr[]>((resolve, reject) => {
       const payload = construction.commands
         .map((cmd) => {
@@ -224,8 +232,8 @@ export class ScClient {
             return {
               el: "edge",
               type: cmd.type.value,
-              src: transformEdgeInfo(construction, cmd.data.src),
-              trg: transformEdgeInfo(construction, cmd.data.trg),
+              src: transformConnectorInfo(construction, cmd.data.src),
+              trg: transformConnectorInfo(construction, cmd.data.trg),
             };
           }
           if (cmd.type.isLink()) {
@@ -239,7 +247,7 @@ export class ScClient {
 
           invalidValue("Unknown type");
         })
-        .filter((value): value is INode | IEdge | ILink => Boolean(value));
+        .filter((value): value is INode | IConnector | ILink => Boolean(value));
 
       this.sendMessage("create_elements", payload, ({ payload, errors }) => {
         const result = payload.map((a) => new ScAddr(a));
@@ -248,7 +256,15 @@ export class ScClient {
     });
   }
 
-  public async createElementsBySCs(scsText: string[] | ISCs[]) {
+  /*!
+   * @deprecated ScClient `createElements` method is deprecated. Use `generateElements` instead.
+   */
+  public async createElements(construction: ScConstruction) {
+    console.warn("Warning: ScClient `createElements` method is deprecated. Use `generateElements` instead.");
+    return this.generateElements(construction);
+  }
+
+  public async generateElementsBySCs(scsText: string[] | ISCs[]) {
     return new Promise<boolean[]>((resolve, reject) => {
       const payload = scsText.map((scsString) => {
         if (typeof scsString === "string") {
@@ -269,13 +285,29 @@ export class ScClient {
     });
   }
 
-  public async deleteElements(addrs: ScAddr[]) {
+  /*!
+   * @deprecated ScClient `createElementsBySCs` method is deprecated. Use `generateElementsBySCs` instead.
+   */
+  public async createElementsBySCs(scsText: string[] | ISCs[]) {
+    console.warn("Warning: ScClient `createElementsBySCs` method is deprecated. Use `generateElementsBySCs` instead.");
+    return this.generateElementsBySCs(scsText);
+  }
+
+  public async eraseElements(addrs: ScAddr[]) {
     return new Promise<boolean>((resolve, reject) => {
       const payload = addrs.map(({ value }) => value);
       this.sendMessage("delete_elements", payload, ({ status, errors }) => {
         this.resolveOrReject(resolve, reject, status, errors);
       });
     });
+  }
+
+  /*!
+   * @deprecated ScClient `deleteElements` method is deprecated. Use `eraseElements` instead.
+   */
+  public async deleteElements(addrs: ScAddr[]) {
+    console.warn("Warning: ScClient `deleteElements` method is deprecated. Use `eraseElements` instead.");
+    return this.eraseElements(addrs);
   }
 
   public async setLinkContents(contents: ScLinkContent[]) {
@@ -310,7 +342,7 @@ export class ScClient {
     });
   }
 
-  public async getLinksByContents(contents: string[]) {
+  public async searchLinksByContents(contents: string[]) {
     return new Promise<ScAddr[][]>((resolve, reject) => {
       const payload = contents.map((content) => ({
         command: "find" as const,
@@ -326,7 +358,15 @@ export class ScClient {
     });
   }
 
-  public async getLinksByContentSubstrings(contents: string[]) {
+  /*!
+   * @deprecated ScClient `getLinksByContents` method is deprecated. Use `searchLinksByContents` instead.
+   */
+  public async getLinksByContents(contents: string[]) {
+    console.warn("Warning: ScClient `getLinksByContents` method is deprecated. Use `getLinksByContents` instead.");
+    return this.searchLinksByContents(contents);
+  }
+
+  public async searchLinksByContentSubstrings(contents: string[]) {
     return new Promise<ScAddr[][]>((resolve, reject) => {
       const payload = contents.map((content) => ({
         command: "find_links_by_substr" as const,
@@ -341,8 +381,16 @@ export class ScClient {
       });
     });
   }
+  
+  /*!
+   * @deprecated ScClient `getLinksByContentSubstrings` method is deprecated. Use `searchLinksByContentSubstrings` instead.
+   */
+  public async getLinksByContentSubstrings(contents: string[]) {
+    console.warn("Warning: ScClient `getLinksByContentSubstrings` method is deprecated. Use `searchLinksByContentSubstrings` instead.");
+    return this.searchLinksByContentSubstrings(contents);
+  }
 
-  public async getLinksContentsByContentSubstrings(contents: string[]) {
+  public async searchLinkContentsByContentSubstrings(contents: string[]) {
     return new Promise<string[][]>((resolve, reject) => {
       const payload = contents.map((content) => ({
         command: "find_strings_by_substr" as const,
@@ -353,6 +401,14 @@ export class ScClient {
         this.resolveOrReject(resolve, reject, payload, errors);
       });
     });
+  }
+
+  /*!
+   * @deprecated ScClient `getLinksContentsByContentSubstrings` method is deprecated. Use `searchLinkContentsByContentSubstrings` instead.
+   */
+  public async getLinksContentsByContentSubstrings(contents: string[]) {
+    console.warn("Warning: ScClient `getLinksContentsByContentSubstrings` method is deprecated. Use `searchLinkContentsByContentSubstrings` instead.");
+    return this.searchLinkContentsByContentSubstrings(contents);
   }
 
   public async resolveKeynodes<ParamId extends string>(
@@ -408,9 +464,9 @@ export class ScClient {
       return { type: "idtf", value: template };
     else if (typeof template === "string") return template;
     else
-      return template.triples.map(({ source, edge, target }) => [
+      return template.triples.map(({ source, connector, target }) => [
         this.processTripleItem(source),
-        this.processTripleItem(edge),
+        this.processTripleItem(connector),
         this.processTripleItem(target),
       ]);
   }
@@ -423,7 +479,7 @@ export class ScClient {
     }, {} as Record<string, number | string>);
   }
 
-  public async templateSearch(
+  public async searchByTemplate(
     template: ScTemplate | ScAddr | string,
     params: Record<string, ScAddr | string> = {}
   ) {
@@ -447,7 +503,18 @@ export class ScClient {
     });
   }
 
-  public async templateGenerate(
+  /*!
+   * @deprecated ScClient `templateSearch` method is deprecated. Use `searchByTemplate` instead.
+   */
+  public async templateSearch(
+    template: ScTemplate | ScAddr | string,
+    params: Record<string, ScAddr | string> = {}
+  ) {
+    console.warn("Warning: ScClient `templateSearch` method is deprecated. Use `searchByTemplate` instead.");
+    return this.searchByTemplate(template, params);
+  }
+
+  public async generateByTemplate(
     template: ScTemplate | ScAddr | string,
     params: Record<string, ScAddr | string> = {}
   ) {
@@ -470,12 +537,23 @@ export class ScClient {
     });
   }
 
-  public async eventsCreate(eventOrEvents: ScEventParams[] | ScEventParams) {
+  /*!
+   * @deprecated ScClient `templateGenerate` method is deprecated. Use `generateByTemplate` instead.
+   */
+  public async templateGenerate(
+    template: ScTemplate | ScAddr | string,
+    params: Record<string, ScAddr | string> = {}
+  ) {
+    console.warn("Warning: ScClient `templateGenerate` method is deprecated. Use `generateByTemplate` instead.");
+    return this.generateByTemplate(template, params);
+  }
+
+  public async createElementaryEventSubscriptions(eventOrEvents: ScEventSubscriptionParams[] | ScEventSubscriptionParams) {
     const events = Array.isArray(eventOrEvents)
       ? eventOrEvents
       : [eventOrEvents];
 
-    return new Promise<ScEvent[]>((resolve, reject) => {
+    return new Promise<ScEventSubscription[]>((resolve, reject) => {
       const payload = {
         create: events.map(({ type, addr }) => ({
           type,
@@ -486,7 +564,7 @@ export class ScClient {
       this.sendMessage("events", payload, ({ payload, errors }) => {
         const result = events.map(({ callback, type }, ind) => {
           const eventId = payload[ind];
-          const newEvt = new ScEvent(eventId, type, callback);
+          const newEvt = new ScEventSubscription(eventId, type, callback);
           this._events[eventId] = newEvt;
           return newEvt;
         });
@@ -496,7 +574,15 @@ export class ScClient {
     });
   }
 
-  public async eventsDestroy(eventIdOrIds: number[] | number) {
+  /*!
+   * @deprecated ScClient `eventsCreate` method is deprecated. Use `createElementaryEventSubscriptions` instead.
+   */
+  public async eventsCreate(eventOrEvents: ScEventSubscriptionParams[] | ScEventSubscriptionParams) {
+    console.warn("Warning: ScClient `eventsCreate` method is deprecated. Use `createElementaryEventSubscriptions` instead.");
+    return this.createElementaryEventSubscriptions(eventOrEvents);
+  }
+
+  public async destroyElementaryEventSubscriptions(eventIdOrIds: number[] | number) {
     const eventIds = Array.isArray(eventIdOrIds)
       ? eventIdOrIds
       : [eventIdOrIds];
@@ -515,7 +601,15 @@ export class ScClient {
     });
   }
 
-  public async findKeynodes<K extends [string, ...string[]]>(
+  /*!
+   * @deprecated ScClient `eventsDestroy` method is deprecated. Use `destroyElementaryEventSubscriptions` instead.
+   */
+  public async eventsDestroy(eventIdOrIds: number[] | number) {
+    console.warn("Warning: ScClient `eventsDestroy` method is deprecated. Use `destroyElementaryEventSubscriptions` instead.");
+    return this.destroyElementaryEventSubscriptions(eventIdOrIds);
+  }
+
+  public async searchKeynodes<K extends [string, ...string[]]>(
     ...keynodes: K
   ): Promise<KeynodesToObject<K>> {
     const newKeynodes = keynodes
@@ -550,5 +644,15 @@ export class ScClient {
       value,
     ]);
     return Object.fromEntries(transformedEntries);
+  }
+
+  /*!
+   * @deprecated ScClient `findKeynodes` method is deprecated. Use `searchKeynodes` instead.
+   */
+  public async findKeynodes<K extends [string, ...string[]]>(
+    ...keynodes: K
+  ): Promise<KeynodesToObject<K>> {
+    console.warn("Warning: ScClient `findKeynodes` method is deprecated. Use `searchKeynodes` instead.");
+    return this.searchKeynodes(...keynodes);
   }
 }

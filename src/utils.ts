@@ -3,7 +3,7 @@ import { ScAddr } from "./ScAddr";
 import { ScConstruction } from "./ScConstruction";
 import { SnakeToCamelCase } from "./types";
 
-export const transformEdgeInfo = (
+export const transformConnectorInfo = (
   construction: ScConstruction,
   aliasOrAddr: ScAddr | string
 ) => {

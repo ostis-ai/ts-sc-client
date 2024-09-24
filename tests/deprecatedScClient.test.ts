@@ -15,8 +15,11 @@ const URL = "ws://localhost:1234";
 describe("ScClient", () => {
   let client: ScClient;
   let server: WS;
+  let consoleWarnSpy: jest.SpyInstance;
 
   beforeEach(async () => {
+    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
     server = new WS(URL, { jsonProtocol: true });
 
     setupServer(server);
@@ -27,6 +30,7 @@ describe("ScClient", () => {
 
   afterEach(() => {
     WS.clean();
+    consoleWarnSpy.mockRestore();
   });
 
   test("getUser", async () => {
@@ -35,10 +39,10 @@ describe("ScClient", () => {
     expect(userAddr.isValid()).toBe(true);
   });
 
-  test("generateElements", async () => {
+  test("createElements", async () => {
     const preparationConstruction = new ScConstruction();
-    preparationConstruction.generateNode(ScType.NodeConst);
-    const addrs = await client.generateElements(preparationConstruction);
+    preparationConstruction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(preparationConstruction);
     await server.nextMessage;
 
     const myNode = "_node";
@@ -49,19 +53,19 @@ describe("ScClient", () => {
 
     const construction = new ScConstruction();
 
-    construction.generateNode(ScType.NodeConst, myNode);
-    construction.generateLink(
+    construction.createNode(ScType.NodeConst, myNode);
+    construction.createLink(
       ScType.LinkConst,
       new ScLinkContent(linkContent, ScLinkContentType.String),
       myLink
     );
-    construction.generateConnector(
+    construction.createEdge(
       ScType.EdgeAccessConstPosPerm,
       myNode,
       fakeNodeAddr
     );
 
-    const res = await client.generateElements(construction);
+    const res = await client.createElements(construction);
 
     expect(res).toHaveLength(3);
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScAddr));
@@ -97,8 +101,8 @@ describe("ScClient", () => {
     );
   });
 
-  test("generateElementsBySCs", async () => {
-    const res = await client.generateElementsBySCs([
+  test("createElementsBySCs", async () => {
+    const res = await client.createElementsBySCs([
       "my_class -> node1;;",
       "my_class -> rrel_1: node1;;",
     ]);
@@ -122,9 +126,9 @@ describe("ScClient", () => {
     );
   });
 
-  test("generateElementsBySCsUnsuccessful", async () => {
+  test("createElementsBySCsUnsuccessful", async () => {
     client
-      .generateElementsBySCs(["->;;"])
+      .createElementsBySCs(["->;;"])
       .then(null)
       .catch((errors) => {
         expect(errors).toHaveLength(1);
@@ -143,13 +147,13 @@ describe("ScClient", () => {
     );
   });
 
-  test("generateElementsBySCsWithOutputStruct", async () => {
+  test("createElementsBySCsWithOutputStruct", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    const addrs = await client.generateElements(construction);
+    construction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(construction);
     await server.nextMessage;
 
-    const res = await client.generateElementsBySCs([
+    const res = await client.createElementsBySCs([
       { scs: "my_class -> node1;;", output_structure: addrs[0] },
     ]);
 
@@ -168,8 +172,8 @@ describe("ScClient", () => {
     );
   });
 
-  test("generateElementsBySCsWithOutputStructNewScAddr", async () => {
-    const res = await client.generateElementsBySCs([
+  test("createElementsBySCsWithOutputStructNewScAddr", async () => {
+    const res = await client.createElementsBySCs([
       { scs: "my_class -> node1;;", output_structure: new ScAddr(0) },
     ]);
 
@@ -188,8 +192,8 @@ describe("ScClient", () => {
     );
   });
 
-  test("generateElementsBySCsWithOutputStructNewScAddr", async () => {
-    const res = await client.generateElementsBySCs([
+  test("createElementsBySCsWithOutputStructNewScAddr", async () => {
+    const res = await client.createElementsBySCs([
       { scs: "my_class -> node1;;", output_structure: new ScAddr(1) },
       { scs: "my_class -> node2;;", output_structure: new ScAddr(2) },
     ]);
@@ -213,17 +217,17 @@ describe("ScClient", () => {
     );
   });
 
-  test("eraseElements", async () => {
+  test("deleteElements", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
-    const addrs = await client.generateElements(construction);
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(construction);
     await server.nextMessage;
 
     const fakeNodeAddr1 = addrs[0];
     const fakeNodeAddr2 = addrs[1];
 
-    const res = await client.eraseElements([fakeNodeAddr1, fakeNodeAddr2]);
+    const res = await client.deleteElements([fakeNodeAddr1, fakeNodeAddr2]);
 
     expect(res).toBeTruthy();
 
@@ -238,17 +242,17 @@ describe("ScClient", () => {
     );
   });
 
-  test("getElementTypes", async () => {
+  test("checkElements", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
-    const addrs = await client.generateElements(construction);
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(construction);
     await server.nextMessage;
 
     const fakeNodeAddr1 = addrs[0];
     const fakeNodeAddr2 = addrs[1];
 
-    const res = await client.getElementTypes([fakeNodeAddr1, fakeNodeAddr2]);
+    const res = await client.checkElements([fakeNodeAddr1, fakeNodeAddr2]);
 
     expect(res).toHaveLength(2);
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScType));
@@ -266,11 +270,11 @@ describe("ScClient", () => {
 
   test("setContent", async () => {
     const construction = new ScConstruction();
-    construction.generateLink(
+    construction.createLink(
       ScType.LinkConst,
       new ScLinkContent("old_content", ScLinkContentType.String)
     );
-    const addrs = await client.generateElements(construction);
+    const addrs = await client.createElements(construction);
     await server.nextMessage;
 
     const content = "new_content";
@@ -303,11 +307,11 @@ describe("ScClient", () => {
   test("getContent", async () => {
     const content = "my_content";
     const construction = new ScConstruction();
-    construction.generateLink(
+    construction.createLink(
       ScType.LinkConst,
       new ScLinkContent(content, ScLinkContentType.String)
     );
-    const addrs = await client.generateElements(construction);
+    const addrs = await client.createElements(construction);
     await server.nextMessage;
 
     const nodeAddr = addrs[0];
@@ -330,11 +334,11 @@ describe("ScClient", () => {
     );
   });
 
-  test("searchLinksByContents", async () => {
+  test("getLinksByContents", async () => {
     const linkContent1 = "test_content1";
     const linkContent2 = "test_content2";
 
-    const res = await client.searchLinksByContents([linkContent1, linkContent2]);
+    const res = await client.getLinksByContents([linkContent1, linkContent2]);
 
     expect(res).toHaveLength(2);
     expect(res[0][0]).toBeInstanceOf(ScAddr);
@@ -361,11 +365,11 @@ describe("ScClient", () => {
     );
   });
 
-  test("searchLinksByContentSubstrings", async () => {
+  test("getLinksByContentSubstrings", async () => {
     const linkContent1 = "con";
     const linkContent2 = "content";
 
-    const res = await client.searchLinksByContentSubstrings([
+    const res = await client.getLinksByContentSubstrings([
       linkContent1,
       linkContent2,
     ]);
@@ -395,11 +399,11 @@ describe("ScClient", () => {
     );
   });
 
-  test("searchLinkContentsByContentSubstrings", async () => {
+  test("getStringsBySubstrings", async () => {
     const linkContent1 = "test_content1";
     const linkContent2 = "test_content2";
 
-    const res = await client.searchLinkContentsByContentSubstrings([
+    const res = await client.getLinksContentsByContentSubstrings([
       linkContent1,
       linkContent2,
     ]);
@@ -450,11 +454,11 @@ describe("ScClient", () => {
     );
   });
 
-  test("searchByTemplate", async () => {
+  test("templateSearch", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
-    const addrs = await client.generateElements(construction);
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(construction);
     await server.nextMessage;
 
     const fakeNodeAddr1 = addrs[0];
@@ -465,7 +469,7 @@ describe("ScClient", () => {
 
     const template = new ScTemplate();
 
-    template.quintuple(
+    template.tripleWithRelation(
       fakeNodeAddr1,
       ScType.EdgeDCommonVar,
       [ScType.NodeVarStruct, circuitDialogAlias],
@@ -477,7 +481,7 @@ describe("ScClient", () => {
       dialog,
     ]);
 
-    const res = await client.searchByTemplate(template);
+    const res = await client.templateSearch(template);
 
     expect(res).toBeTruthy();
 
@@ -517,8 +521,8 @@ describe("ScClient", () => {
     );
   });
 
-  test("searchByTemplateBySCs", async () => {
-    const res = await client.searchByTemplate("concept_node _-> _node1;;");
+  test("templateSearchBySCs", async () => {
+    const res = await client.templateSearch("concept_node _-> _node1;;");
 
     expect(res).toBeTruthy();
 
@@ -535,11 +539,11 @@ describe("ScClient", () => {
     );
   });
 
-  test("searchByTemplateByString", async () => {
+  test("templateSearchByString", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
-    const addrs = await client.generateElements(construction);
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(construction);
     await server.nextMessage;
 
     const fakeNodeAddr1 = addrs[0];
@@ -550,7 +554,7 @@ describe("ScClient", () => {
       ["_node2"]: fakeNodeAddr2,
     };
 
-    const res = await client.searchByTemplate("test_template_1", params);
+    const res = await client.templateSearch("test_template_1", params);
 
     expect(res).toBeTruthy();
 
@@ -573,11 +577,11 @@ describe("ScClient", () => {
     );
   });
 
-  test("searchByTemplateByAddr", async () => {
+  test("templateSearchByAddr", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConstStruct);
-    const addrs = await client.generateElements(construction);
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConstStruct);
+    const addrs = await client.createElements(construction);
     await server.nextMessage;
 
     const fakeNodeAddr1 = addrs[0];
@@ -588,7 +592,7 @@ describe("ScClient", () => {
       ["_node2"]: "test_node",
     };
 
-    const res = await client.searchByTemplate(fakeTemplateAddr, params);
+    const res = await client.templateSearch(fakeTemplateAddr, params);
 
     expect(res).toBeTruthy();
 
@@ -611,12 +615,12 @@ describe("ScClient", () => {
     );
   });
 
-  test("generateByTemplate", async () => {
+  test("templateGenerate", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
-    const addrs = await client.generateElements(construction);
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(construction);
     await server.nextMessage;
 
     const fakeNodeAddr1 = addrs[0];
@@ -628,7 +632,7 @@ describe("ScClient", () => {
 
     const template = new ScTemplate();
 
-    template.quintuple(
+    template.tripleWithRelation(
       fakeNodeAddr1,
       ScType.EdgeDCommonVar,
       [ScType.NodeVarStruct, circuitDialogAlias],
@@ -644,7 +648,7 @@ describe("ScClient", () => {
       [dialog]: fakeParamAddr,
     };
 
-    const res = await client.generateByTemplate(template, params);
+    const res = await client.templateGenerate(template, params);
 
     expect(res).toBeInstanceOf(ScTemplateResult);
 
@@ -685,8 +689,8 @@ describe("ScClient", () => {
     );
   });
 
-  test("generateByTemplateBySCs", async () => {
-    const res = await client.generateByTemplate("concept_node _-> _node1;;");
+  test("templateGenerateBySCs", async () => {
+    const res = await client.templateGenerate("concept_node _-> _node1;;");
 
     expect(res).toBeTruthy();
     expect(res).toBeInstanceOf(ScTemplateResult);
@@ -702,11 +706,11 @@ describe("ScClient", () => {
     );
   });
 
-  test("generateByTemplateByString", async () => {
+  test("templateGenerateByString", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
-    const addrs = await client.generateElements(construction);
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(construction);
     await server.nextMessage;
 
     const fakeNodeAddr1 = addrs[0];
@@ -717,7 +721,7 @@ describe("ScClient", () => {
       ["_node2"]: fakeNodeAddr2,
     };
 
-    const res = await client.generateByTemplate("test_template_1", params);
+    const res = await client.templateGenerate("test_template_1", params);
 
     expect(res).toBeTruthy();
     expect(res).toBeInstanceOf(ScTemplateResult);
@@ -739,11 +743,11 @@ describe("ScClient", () => {
     );
   });
 
-  test("generateByTemplateByAddr", async () => {
+  test("templateGenerateByAddr", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConstStruct);
-    const addrs = await client.generateElements(construction);
+    construction.createNode(ScType.NodeConst);
+    construction.createNode(ScType.NodeConstStruct);
+    const addrs = await client.createElements(construction);
     await server.nextMessage;
 
     const fakeNodeAddr1 = addrs[0];
@@ -754,7 +758,7 @@ describe("ScClient", () => {
       ["_node2"]: "test_node",
     };
 
-    const res = await client.generateByTemplate(fakeTemplateAddr, params);
+    const res = await client.templateGenerate(fakeTemplateAddr, params);
 
     expect(res).toBeTruthy();
     expect(res).toBeInstanceOf(ScTemplateResult);
@@ -776,13 +780,13 @@ describe("ScClient", () => {
     );
   });
 
-  test("createElementaryEventSubscriptions", async () => {
+  test("eventsCreate", async () => {
     const eventCallback = jest.fn();
 
     const preparationConstruction = new ScConstruction();
-    preparationConstruction.generateNode(ScType.NodeConst);
-    preparationConstruction.generateNode(ScType.NodeConst);
-    const addrs = await client.generateElements(preparationConstruction);
+    preparationConstruction.createNode(ScType.NodeConst);
+    preparationConstruction.createNode(ScType.NodeConst);
+    const addrs = await client.createElements(preparationConstruction);
     await server.nextMessage;
 
     const fakeNodeAddr1 = addrs[0];
@@ -799,18 +803,18 @@ describe("ScClient", () => {
       () => void 0
     );
 
-    const res = await client.createElementaryEventSubscriptions([evtParams1, evtParams2]);
+    const res = await client.eventsCreate([evtParams1, evtParams2]);
 
     const construction = new ScConstruction();
 
-    construction.generateConnector(
+    construction.createEdge(
       ScType.EdgeAccessConstPosPerm,
       fakeNodeAddr2,
       fakeNodeAddr1
     );
 
-    const edgeAddr = await client.generateElements(construction);
-    await client.eraseElements(edgeAddr);
+    const edgeAddr = await client.createElements(construction);
+    await client.deleteElements(edgeAddr);
 
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScEventSubscription));
 
@@ -840,10 +844,10 @@ describe("ScClient", () => {
     );
   });
 
-  test("destroyElementaryEventSubscriptions", async () => {
+  test("eventsDestroy", async () => {
     const eventIds = [1, 2];
 
-    const res = await client.destroyElementaryEventSubscriptions(eventIds);
+    const res = await client.eventsDestroy(eventIds);
 
     expect(res).toBe(true);
 
@@ -857,14 +861,14 @@ describe("ScClient", () => {
     );
   });
 
-  test("searchKeynodes. Correct output", async () => {
-    const res = await client.searchKeynodes("aa_bb", "cc_d", "f");
+  test("findKeynodes. Correct output", async () => {
+    const res = await client.findKeynodes("aa_bb", "cc_d", "f");
     expect(Object.keys(res)).toEqual(["aaBb", "ccD", "f"]);
     Object.values(res).forEach((value) => expect(value).toBeInstanceOf(ScAddr));
   });
 
-  test("searchKeynodes. Correct cache implementation", async () => {
-    // TODO: test correct caching. Check if server receives messages only for new keynodes
+  test("findKeynodes. Correct cache implementation", async () => {
+    // TODO: test correct cacheing. Check if server receives messages only for new keynodes
     expect(1).toBe(1);
   });
 });

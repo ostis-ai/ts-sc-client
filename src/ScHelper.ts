@@ -1,8 +1,8 @@
 import { ScAddr } from "./ScAddr";
 import { ScClient } from "./ScClient";
 import { ScConstruction } from "./ScConstruction";
-import { ScEventType } from "./ScEvent";
-import { ScEventParams } from "./ScEventParams";
+import { ScEventType } from "./ScEventSubscription";
+import { ScEventSubscriptionParams } from "./ScEventSubscriptionParams";
 import { ScLinkContent, ScLinkContentType } from "./ScLinkContent";
 import { ScTemplate } from "./ScTemplate";
 import { ScType } from "./ScType";
@@ -16,7 +16,7 @@ export class ScHelper {
   }
 
   public async getMainIdentifierLinkAddr(addr: ScAddr, lang: string) {
-    const { nrelMainIdtf, ...rest } = await this._client.findKeynodes(
+    const { nrelMainIdtf, ...rest } = await this._client.searchKeynodes(
       "nrel_main_idtf",
       lang
     );
@@ -25,7 +25,7 @@ export class ScHelper {
     const template = new ScTemplate();
     const linkAlias = "_link";
 
-    template.tripleWithRelation(
+    template.quintuple(
       addr,
       ScType.EdgeDCommonVar,
       [ScType.LinkVar, linkAlias],
@@ -33,7 +33,7 @@ export class ScHelper {
       nrelMainIdtf
     );
     template.triple(foundLang, ScType.EdgeAccessVarPosPerm, linkAlias);
-    const result = await this._client.templateSearch(template);
+    const result = await this._client.searchByTemplate(template);
 
     if (!result.length) {
       return null;
@@ -52,21 +52,21 @@ export class ScHelper {
   }
 
   public async getSystemIdentifier(addr: ScAddr) {
-    const { nrelSystemIdentifier } = await this._client.findKeynodes(
+    const { nrelSystemIdentifier } = await this._client.searchKeynodes(
       "nrel_system_identifier"
     );
 
     const template = new ScTemplate();
     const linkAlias = "_link";
 
-    template.tripleWithRelation(
+    template.quintuple(
       addr,
       ScType.EdgeDCommonVar,
       [ScType.LinkVar, linkAlias],
       ScType.EdgeAccessVarPosPerm,
       nrelSystemIdentifier
     );
-    const result = await this._client.templateSearch(template);
+    const result = await this._client.searchByTemplate(template);
 
     if (!result.length) {
       return null;
@@ -90,14 +90,14 @@ export class ScHelper {
   public async getAddrOrSystemIdentifierAddr(addrOrSystemId: string | number) {
     const numericAddr = Number(addrOrSystemId);
     if (numericAddr) return numericAddr;
-    const keynodes = await this._client.findKeynodes(String(addrOrSystemId));
+    const keynodes = await this._client.searchKeynodes(String(addrOrSystemId));
     return keynodes[snakeToCamelCase(String(addrOrSystemId))].value;
   }
 
   public getAnswer(actionNode: ScAddr) {
     return new Promise<ScAddr>((resolve) => {
       (async () => {
-        const { nrelAnswer } = await this._client.findKeynodes("nrel_answer");
+        const { nrelAnswer } = await this._client.searchKeynodes("nrel_answer");
 
         const onActionFinished = async (
           _subscibedAddr: ScAddr,
@@ -107,52 +107,60 @@ export class ScHelper {
         ) => {
           const template = new ScTemplate();
           template.triple(nrelAnswer, ScType.EdgeAccessVarPosPerm, arc);
-          const isNrelAnswer = (await this._client.templateSearch(template))
+          const isNrelAnswer = (await this._client.searchByTemplate(template))
             .length;
           if (!isNrelAnswer) return;
           this._client.eventsDestroy(eventId);
           resolve(anotherAddr);
         };
 
-        const eventParams = new ScEventParams(
+        const eventParams = new ScEventSubscriptionParams(
           actionNode,
-          ScEventType.AddOutgoingEdge,
+          ScEventType.AfterGenerateOutgoingArc,
           onActionFinished
         );
 
-        const [eventId] = await this._client.eventsCreate(eventParams);
+        const [eventId] = await this._client.createElementaryEventSubscriptions(eventParams);
 
         const answerAlias = "_answer";
 
         const template = new ScTemplate();
-        template.tripleWithRelation(
+        template.quintuple(
           actionNode,
           ScType.EdgeDCommonVar,
           [ScType.NodeVar, answerAlias],
           ScType.EdgeAccessVarPosPerm,
           nrelAnswer
         );
-        const searchRes = await this._client.templateSearch(template);
+        const searchRes = await this._client.searchByTemplate(template);
 
         const answer = searchRes[0]?.get(answerAlias);
 
         if (!answer) return;
 
-        this._client.eventsDestroy(eventId.id);
+        this._client.destroyElementaryEventSubscriptions(eventId.id);
         resolve(answer);
       })();
     });
   }
 
-  public async createLink(item: string) {
+  public async generateLink(item: string) {
     const constructionLink = new ScConstruction();
-    constructionLink.createLink(
+    constructionLink.generateLink(
       ScType.LinkConst,
       new ScLinkContent(item, ScLinkContentType.String)
     );
 
-    const resultLinkNode = await this._client.createElements(constructionLink);
+    const resultLinkNode = await this._client.generateElements(constructionLink);
     if (resultLinkNode.length) return resultLinkNode[0];
     return null;
+  }
+
+  /*!
+   * @deprecated ScHelper `createLink` method is deprecated. Use `generateLink` instead.
+   */
+  public async createLink(item: string) {
+    console.warn("Warning: ScHelper `createLink` method is deprecated. Use `generateLink` instead.");
+    return this.generateLink(item);
   }
 }

@@ -1,7 +1,7 @@
 import { ScAddr } from "./ScAddr";
-import { ScEventCallbackFunc, ScEventType } from "./ScEvent";
+import { ScEventCallbackFunc, ScEventType } from "./ScEventSubscription";
 
-export class ScEventParams {
+export class ScEventSubscriptionParams {
   private _addr: ScAddr;
   private _type: ScEventType;
   private _callback: ScEventCallbackFunc;

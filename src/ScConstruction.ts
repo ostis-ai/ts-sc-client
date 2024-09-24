@@ -13,7 +13,7 @@ export class ScConstruction {
     this._aliases = {};
   }
 
-  public createNode(type: ScType, alias?: string) {
+  public generateNode(type: ScType, alias?: string) {
     if (!type.isNode()) {
       invalidValue("You should pass node type there");
     }
@@ -25,18 +25,26 @@ export class ScConstruction {
     this._commands.push(cmd);
   }
 
-  public createEdge(
+  /*!
+   * @deprecated ScConstruction `createNode` method is deprecated. Use `generateNode` instead.
+   */
+  public createNode(type: ScType, alias?: string) {
+    console.warn("Warning: ScConstruction `createNode` method is deprecated. Use `generateNode` instead.");
+    this.generateNode(type, alias);
+  }
+
+  public generateConnector(
     type: ScType,
-    src: string | ScAddr,
-    trg: string | ScAddr,
+    source: string | ScAddr,
+    target: string | ScAddr,
     alias?: string
   ) {
     if (!type.isEdge()) {
       invalidValue("You should pass edge type there");
     }
     const cmd = new ScConstructionCommand(type, {
-      src: src,
-      trg: trg,
+      src: source,
+      trg: target,
     });
 
     if (alias) {
@@ -45,7 +53,20 @@ export class ScConstruction {
     this._commands.push(cmd);
   }
 
-  public createLink(type: ScType, content: ScLinkContent, alias?: string) {
+  /*!
+   * @deprecated ScConstruction `createEdge` method is deprecated. Use `generateConnector` instead.
+   */
+  public createEdge(
+    type: ScType,
+    source: string | ScAddr,
+    target: string | ScAddr,
+    alias?: string
+  ) {
+    console.warn("Warning: ScConstruction `createEdge` method is deprecated. Use `generateConnector` instead.");
+    this.generateConnector(type, source, target, alias);
+  }
+
+  public generateLink(type: ScType, content: ScLinkContent, alias?: string) {
     if (!type.isLink()) {
       invalidValue("You should pass link type there");
     }
@@ -58,6 +79,14 @@ export class ScConstruction {
       this._aliases[alias] = this._commands.length;
     }
     this._commands.push(cmd);
+  }
+
+  /*!
+   * @deprecated ScConstruction `createLink` method is deprecated. Use `generateLink` instead.
+   */
+  public createLink(type: ScType, content: ScLinkContent, alias?: string) {
+    console.warn("Warning: ScConstruction `createLink` method is deprecated. Use `generateLink` instead.");
+    this.generateLink(type, content, alias);
   }
 
   public get commands() {

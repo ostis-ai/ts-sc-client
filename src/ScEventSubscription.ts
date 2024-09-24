@@ -9,15 +9,15 @@ export type ScEventCallbackFunc = (
 
 export enum ScEventType {
   Unknown = "unknown",
-  AddOutgoingEdge = "add_outgoing_edge",
-  AddIngoingEdge = "add_ingoing_edge",
-  RemoveOutgoingEdge = "remove_outgoing_edge",
-  RemoveIngoingEdge = "remove_ingoing_edge",
-  RemoveElement = "delete_element",
-  ChangeContent = "content_change",
+  AfterGenerateOutgoingArc = "add_outgoing_edge",
+  AfterGenerateIncomingArc = "add_ingoing_edge",
+  BeforeEraseOutgoingArc = "remove_outgoing_edge",
+  BeforeEraseIncomingArc = "remove_ingoing_edge",
+  BeforeEraseElement = "delete_element",
+  BeforeChangeLinkContent = "content_change",
 }
 
-export class ScEvent {
+export class ScEventSubscription {
   private _id: number = 0;
   private _type: ScEventType | null = null;
   private _callback: ScEventCallbackFunc | null = null;

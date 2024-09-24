@@ -1,5 +1,5 @@
 import { ScAddr } from "./ScAddr";
-import { ScEventType } from "./ScEvent";
+import { ScEventType } from "./ScEventSubscription";
 import { ScLinkContentType, TContentString } from "./ScLinkContent";
 
 interface ScServerError {
@@ -31,7 +31,7 @@ export interface ISCs {
   output_structure: ScAddr;
 }
 
-interface ICreateElementsBySCsArgs {
+interface IGenerateElementsBySCsArgs {
   scs: string;
   output_structure: number;
 }
@@ -41,17 +41,17 @@ interface IGetContentPayload {
   addr: number;
 }
 
-interface IGetLinksByContentsPayload {
+interface ISearchLinksByContentsPayload {
   command: "find";
   data: string | number;
 }
 
-interface IGetLinksByContentSubstringsPayload {
+interface ISearchLinksByContentSubstringsPayload {
   command: "find_links_by_substr";
   data: string | number;
 }
 
-interface IGetStringsBySubstringsPayload {
+interface ISearchLinkContentsByContentSubstringsPayload {
   command: "find_strings_by_substr";
   data: string | number;
 }
@@ -74,16 +74,16 @@ export interface INode {
   type: number;
 }
 
-interface IEdgeInfo {
+interface IConnectorInfo {
   type: "addr" | "ref";
   value: number;
 }
 
-export interface IEdge {
+export interface IConnector {
   el: "edge";
   type: number;
-  src: IEdgeInfo;
-  trg: IEdgeInfo;
+  src: IConnectorInfo;
+  trg: IConnectorInfo;
 }
 
 export interface ILink {
@@ -113,30 +113,30 @@ interface ITripleAlias {
 
 export type TTripleItem = ITripleAddr | ITripleType | ITripleAlias;
 
-interface ISearchTemplatePayload {
+interface ISearchByTemplatePayload {
   templ: TTripleItem[][] | { type: string; value: string | number } | string;
   params: Record<string, number | string>;
 }
 
-interface IGenerateTemplatePayload {
+interface IGenerateByTemplatePayload {
   templ: TTripleItem[][] | { type: string; value: string | number } | string;
   params: Record<string, number | string>;
 }
 
-interface ICreateEventPayload {
+interface TCreateEventSubscriptionsPayload {
   create: Array<{ type: ScEventType; addr: number }>;
 }
 
-interface IDeleteEventPayload {
+interface TDestroyEventSubscriptionsPayload {
   delete: number[];
 }
 
-interface ISearchResult {
+interface ISearchByTemplateResult {
   aliases: Record<string, number>;
   addrs: number[][];
 }
 
-interface IGenerateResult {
+interface IGenerateByTemplateResult {
   aliases: Record<string, number>;
   addrs: number[];
 }
@@ -179,33 +179,33 @@ type Args<
 > = [Action, Payload, TWSCallback<ResponsePayload, Event>];
 
 export type TConnectionInfoArgs = Args<"connection_info", null, IConnectionInfo>
-export type TCheckElementsArgs = Args<"check_elements", number[], number[]>;
-export type TDeleteElementsArgs = Args<"delete_elements", number[], unknown>;
+export type TGetElementsTypesArgs = Args<"check_elements", number[], number[]>;
+export type TEraseElementsArgs = Args<"delete_elements", number[], unknown>;
 export type TKeynodesElementsArgs = Args<
   "keynodes",
   TKeynodesPayload,
   number[]
 >;
-export type TTemplateSearchArgs = Args<
+export type TSearchByTemplateArgs = Args<
   "search_template",
-  ISearchTemplatePayload,
-  ISearchResult
+  ISearchByTemplatePayload,
+  ISearchByTemplateResult
 >;
-export type TTemplateGenerateArgs = Args<
+export type TGenerateByTemplateArgs = Args<
   "generate_template",
-  IGenerateTemplatePayload,
-  IGenerateResult
+  IGenerateByTemplatePayload,
+  IGenerateByTemplateResult
 >;
-export type TCreateEventArgs = Args<"events", ICreateEventPayload, number[]>;
-export type TDeleteEventArgs = Args<"events", IDeleteEventPayload, number[]>;
-export type TCreateElementsArgs = Args<
+export type TCreateEventSubscriptionsArgs = Args<"events", TCreateEventSubscriptionsPayload, number[]>;
+export type TDestroyEventSubscriptionArgs = Args<"events", TDestroyEventSubscriptionsPayload, number[]>;
+export type TGenerateElementsArgs = Args<
   "create_elements",
-  Array<ILink | IEdge | INode>,
+  Array<ILink | IConnector | INode>,
   number[]
 >;
-export type TCreateElementsBySCsArgs = Args<
+export type TGenerateElementsBySCsArgs = Args<
   "create_elements_by_scs",
-  Array<ICreateElementsBySCsArgs>,
+  Array<IGenerateElementsBySCsArgs>,
   boolean[]
 >;
 export type TSetContentArgs = Args<
@@ -219,15 +219,15 @@ export type TGetContentArgs = Args<
   IContentResult[]
 >;
 
-export type TGetLinksArgs = Args<
+export type TSearchLinksArgs = Args<
   "content",
-  Array<IGetLinksByContentsPayload | IGetLinksByContentSubstringsPayload>,
+  Array<ISearchLinksByContentsPayload | ISearchLinksByContentSubstringsPayload>,
   number[][]
 >;
 
-export type TGetStringsArgs = Args<
+export type TSearchLinkContentsArgs = Args<
   "content",
-  Array<IGetStringsBySubstringsPayload>,
+  Array<ISearchLinkContentsByContentSubstringsPayload>,
   string[][]
 >;
 
