@@ -40,7 +40,7 @@ export class ScConstruction {
     alias?: string
   ) {
     if (!type.isEdge()) {
-      invalidValue("You should pass edge type there");
+      invalidValue("You should pass connector type there");
     }
     const cmd = new ScConstructionCommand(type, {
       src: source,

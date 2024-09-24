@@ -127,14 +127,14 @@ Delete specified elements. Returned boolean represents whether deleting was succ
     const res = await client.eraseElements([addr1, addr2]);
 ```
 
-## `client.getElementTypes(addrs: ScAddr[]): ScType[]`
+## `client.getElementsTypes(addrs: ScAddr[]): ScType[]`
 
 With this method you can check if specified elements exist. If element does not exits, returned ScType will be invalid
 
 ```ts
     import { client } from "../path-to-client";
 
-    const res = await client.getElementTypes([addr1, addr2]);
+    const res = await client.getElementsTypes([addr1, addr2]);
 ```
 
 ## `client.setLinkContents(addrs: ScAddr[]): boolean[]`
@@ -338,23 +338,23 @@ Generate construction by specified template.
 
 ## `client.createElementaryEventSubscriptions(params: ScEventSubscriptionParams[]): ScEventSubscription[]`
 
-Subscribe to event. Event callback, passed to `ScEventSubscriptionParams` constructor, has 4 parameters: subscribedAddr, foundConnector addr, foundNode addr and created eventId. The last one may be used to destroy event after having some specific result.
+Subscribe to event. Event callback, passed to `ScEventSubscriptionParams` constructor, has 4 parameters: `subscribedAddr`, `connectorAddr` (sc-address of sc-connector generated or erased from or to sc-element with sc-address `subscribedAddr`), `otherElementAddr` (it equals to source sc-element of sc-connector with sc-address `connectorAddr`, if target sc-element of this sc-connector is sc-element with sc-address `subscribedAddr`, otherwise, it equals to target sc-element of this sc-connector) and created eventId. The last one may be used to destroy event after having some specific result.
 
 ```ts
     import { ScAddr } from "ts-sc-client";
     import { client } from "../path-to-client";
 
-    const callback = (subscribedAddr: ScAddr, foundConnector: ScAddr, foundNode: ScAddr, createdEventId: number) => {
+    const callback = (subscribedAddr: ScAddr, connectorAddr: ScAddr, otherElementAddr: ScAddr, createdEventId: number) => {
         // some logic here
     }
 
-    const evtParams = new ScEventSubscriptionParams(
+    const eventSubscriptionParams = new ScEventSubscriptionParams(
       fakeAddr2,
-      ScEventType.RemoveIngoingEdge,
+      ScEventType.BeforeEraseIncomingArc,
       callback
     );
 
-    const res = await client.createElementaryEventSubscriptions([evtParams]);
+    const res = await client.createElementaryEventSubscriptions([eventSubscriptionParams]);
 ```
 
 ## `client.destroyElementaryEventSubscriptions(eventIds: number[]): boolean`
@@ -370,7 +370,7 @@ Destroy an event. Input arguments are event ids returned by createElementaryEven
     await client.destroyElementaryEventSubscriptions(eventIds);
 ```
 
-## `client.searchKeynodes(...keynodesInShakeCase: string[]): { keynodesInCamelCase: ScAddr }`
+## `client.searchKeynodes(...keynodesInSnakeCase: string[]): { keynodesInCamelCase: ScAddr }`
 
 This method is a wrapper on resolveKeynodes. It returns object with specified keynodes strings as described bellow. Also it caches requested keynodes.
 

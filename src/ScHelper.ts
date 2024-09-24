@@ -94,23 +94,23 @@ export class ScHelper {
     return keynodes[snakeToCamelCase(String(addrOrSystemId))].value;
   }
 
-  public getAnswer(actionNode: ScAddr) {
+  public getResult(actionNode: ScAddr) {
     return new Promise<ScAddr>((resolve) => {
       (async () => {
-        const { nrelAnswer } = await this._client.searchKeynodes("nrel_answer");
+        const { nrelResult } = await this._client.searchKeynodes("nrel_result");
 
         const onActionFinished = async (
-          _subscibedAddr: ScAddr,
+          _subscribedAddr: ScAddr,
           arc: ScAddr,
           anotherAddr: ScAddr,
           eventId: number
         ) => {
           const template = new ScTemplate();
-          template.triple(nrelAnswer, ScType.EdgeAccessVarPosPerm, arc);
-          const isNrelAnswer = (await this._client.searchByTemplate(template))
+          template.triple(nrelResult, ScType.EdgeAccessVarPosPerm, arc);
+          const isNrelResult = (await this._client.searchByTemplate(template))
             .length;
-          if (!isNrelAnswer) return;
-          this._client.eventsDestroy(eventId);
+          if (!isNrelResult) return;
+          this._client.destroyElementaryEventSubscriptions(eventId);
           resolve(anotherAddr);
         };
 
@@ -122,26 +122,34 @@ export class ScHelper {
 
         const [eventId] = await this._client.createElementaryEventSubscriptions(eventParams);
 
-        const answerAlias = "_answer";
+        const resultAlias = "_result";
 
         const template = new ScTemplate();
         template.quintuple(
           actionNode,
           ScType.EdgeDCommonVar,
-          [ScType.NodeVar, answerAlias],
+          [ScType.NodeVar, resultAlias],
           ScType.EdgeAccessVarPosPerm,
-          nrelAnswer
+          nrelResult
         );
         const searchRes = await this._client.searchByTemplate(template);
 
-        const answer = searchRes[0]?.get(answerAlias);
+        const result = searchRes[0]?.get(resultAlias);
 
-        if (!answer) return;
+        if (!result) return;
 
         this._client.destroyElementaryEventSubscriptions(eventId.id);
-        resolve(answer);
+        resolve(result);
       })();
     });
+  }
+
+  /*!
+   * @deprecated ScHelper `getAnswer` method is deprecated. Use `getResult` instead.
+   */
+  public getAnswer(actionNode: ScAddr) {
+    console.warn("Warning: ScHelper `getAnswer` method is deprecated. Use `getResult` instead.");
+    return this.getResult(actionNode);
   }
 
   public async generateLink(item: string) {

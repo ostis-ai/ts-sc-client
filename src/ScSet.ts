@@ -31,8 +31,8 @@ export class ScSet {
   private _onInitialize: CallbackInitialize | null = null;
   private _filterType: ScType | null | undefined = null; // just elements with this type will be processed by set
 
-  private _evtAddElement: ScEventSubscription | undefined;
-  private _evtRemoveElement: ScEventSubscription | undefined;
+  private _evtGenerateElement: ScEventSubscription | undefined;
+  private _evtEraseElement: ScEventSubscription | undefined;
 
   constructor(
     scClient: ScClient,
@@ -57,21 +57,21 @@ export class ScSet {
     // subscribe to events
     if (!this._addr) return;
 
-    const events = await this._scClient?.eventsCreate([
+    const eventSubscriptions = await this._scClient?.createElementaryEventSubscriptions([
       new ScEventSubscriptionParams(
         this._addr,
         ScEventType.AfterGenerateOutgoingArc,
-        this.onEventAddElement.bind(this)
+        this.onEventGenerateElement.bind(this)
       ),
       new ScEventSubscriptionParams(
         this._addr,
         ScEventType.BeforeEraseOutgoingArc,
-        this.onEventRemoveElement.bind(this)
+        this.onEventEraseElement.bind(this)
       ),
     ]);
 
-    this._evtAddElement = events?.[0];
-    this._evtRemoveElement = events?.[1];
+    this._evtGenerateElement = eventSubscriptions?.[0];
+    this._evtEraseElement = eventSubscriptions?.[1];
 
     await this.iterateExistingElements();
 
@@ -81,7 +81,7 @@ export class ScSet {
   }
 
   private async shouldAppend(addrs: ScAddr[]): Promise<boolean[] | undefined> {
-    const types = await this._scClient?.getElementTypes(addrs);
+    const types = await this._scClient?.getElementsTypes(addrs);
     const result = types?.map((t: ScType) => {
       return !(
         this._filterType &&
@@ -94,7 +94,7 @@ export class ScSet {
     });
   }
 
-  private async onEventAddElement(
+  private async onEventGenerateElement(
     setAddr: ScAddr,
     connectorAddr: ScAddr,
     itemAddr: ScAddr
@@ -115,7 +115,7 @@ export class ScSet {
     });
   }
 
-  private async onEventRemoveElement(
+  private async onEventEraseElement(
     setAddr: ScAddr,
     connectorAddr: ScAddr
   ): Promise<void> {

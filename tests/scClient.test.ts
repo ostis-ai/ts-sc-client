@@ -238,7 +238,7 @@ describe("ScClient", () => {
     );
   });
 
-  test("getElementTypes", async () => {
+  test("getElementsTypes", async () => {
     const construction = new ScConstruction();
     construction.generateNode(ScType.NodeConst);
     construction.generateNode(ScType.NodeConst);
@@ -248,7 +248,7 @@ describe("ScClient", () => {
     const fakeNodeAddr1 = addrs[0];
     const fakeNodeAddr2 = addrs[1];
 
-    const res = await client.getElementTypes([fakeNodeAddr1, fakeNodeAddr2]);
+    const res = await client.getElementsTypes([fakeNodeAddr1, fakeNodeAddr2]);
 
     expect(res).toHaveLength(2);
     res.forEach((resItem) => expect(resItem).toBeInstanceOf(ScType));

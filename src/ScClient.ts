@@ -197,7 +197,7 @@ export class ScClient {
     });
   }
 
-  public async getElementTypes(addrs: ScAddr[]) {
+  public async getElementsTypes(addrs: ScAddr[]) {
     return new Promise<ScType[]>((resolve, reject) => {
       if (!addrs.length) return resolve([]);
 
@@ -211,11 +211,11 @@ export class ScClient {
   }
 
   /*!
-   * @deprecated ScClient `checkElements` method is deprecated. Use `getElementTypes` instead.
+   * @deprecated ScClient `checkElements` method is deprecated. Use `getElementsTypes` instead.
    */
   public async checkElements(addrs: ScAddr[]) {
-    console.warn("Warning: ScClient `checkElements` method is deprecated. Use `getElementTypes` instead.");
-    return this.getElementTypes(addrs);
+    console.warn("Warning: ScClient `checkElements` method is deprecated. Use `getElementsTypes` instead.");
+    return this.getElementsTypes(addrs);
   }
 
   public async generateElements(construction: ScConstruction) {
@@ -362,7 +362,7 @@ export class ScClient {
    * @deprecated ScClient `getLinksByContents` method is deprecated. Use `searchLinksByContents` instead.
    */
   public async getLinksByContents(contents: string[]) {
-    console.warn("Warning: ScClient `getLinksByContents` method is deprecated. Use `getLinksByContents` instead.");
+    console.warn("Warning: ScClient `getLinksByContents` method is deprecated. Use `searchLinksByContents` instead.");
     return this.searchLinksByContents(contents);
   }
 
