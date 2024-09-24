@@ -5,6 +5,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Breaking changes
+- This version is compatible with version of the sc-machine 0.10.0. All API methods were redesigned. Misleading ones were removed, new ones were added. See table below, to learn more about changes.
+
+| Deprecated method                      | Substitution method                       | 
+|----------------------------------------|-------------------------------------------|
+| checkElements                          | getElementTypes                           |
+| createElements                         | generateElements                          |
+| createNode                             | generateNode                              |
+| createLink                             | generateLink                              |
+| createEdge                             | generateConnector                         |
+| createElementsBySCs                    | generateElements_by_scs                   | 
+| deleteElements                         | eraseElements                             |
+| getLinksByContents                     | searchLinksByContents                     |
+| getLinksByContentSubstrings            | searchLinksByContentSubstrings            |
+| getLinksContentsByContentSubstrings    | searchLinkContentsByContentSubstrings     |
+| templateSearch                         | searchByTemplate                          |
+| templateGenerate                       | generateByTemplate                        |
+| tripleWithRelation                     | quintuple                                 |
+| eventsCreate                           | createElementaryEventSubscriptions        |
+| eventsDestroy                          | destroyElementaryEventSubscriptions       |
+| findKeynodes                           | searchKeynodes                            |
+
+- `ScEvent` class was renamed to `ScEventSubscription` and `ScEventParams` class was renamed to `ScEventSubscriptionParams`. 
+
+### Added
+- ScClient methods: `getElementTypes`, `generateElements`, `generateNode`, `generateLink`, `generateConnector`, `generateElementsBySCs`, `eraseElements`, `searchLinksByContents`, `searchLinksByContentSubstrings`, `searchLinkContentsByContentSubstrings`, `searchByTemplate`, `generateByTemplate`, `quintuple`, `createElementaryEventSubscriptions`, `destroyElementaryEventSubscriptions`, `searchKeynodes`
+
+### Changed
+- `ScEvent` class was renamed to `ScEventSubscription`
+- `ScEventParams` class was renamed to `ScEventSubscriptionParams`
+
+### Deprecated
+- ScClient methods: `checkElements`, `createElements`, `createNode`, `createLink`, `createEdge`, `createElementsBySCs`, `deleteElements`, `getLinksByContents`, `getLinksByContentSubstrings`, `getLinksContentsByContentSubstrings`, `templateSearch`, `templateGenerate`, `tripleWithRelation`, `eventsCreate`, `eventsDestroy`, `findKeynodes`
 
 ## [v0.4.2]
 ### Fixed

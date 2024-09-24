@@ -27,7 +27,7 @@ To get user from session use:
     const userAddr = client.getUser();
 ```
 
-By default client is browser based, so it uses `window.WebSocket` class. When using with node js one may pass custom websocket instanse
+By default client is browser based, so it uses `window.WebSocket` class. When using with node js one may pass custom websocket instance
 
 ```ts
     import { WebSocket } from "ws";
@@ -44,15 +44,15 @@ This method is a native websocket addEventListener. So it provides all basic soc
     import { client } from "../path-to-client";
 
     client.addEventListener("open", () => {
-        // some logic to inform or proccess socket connection opening
+        // some logic to inform or process socket connection opening
     })
     
     client.addEventListener("error", () => {
-        // socket connetion resolved with error
+        // socket connection resolved with error
     })
     
     client.addEventListener("close", () => {
-        // socket connetion is closed
+        // socket connection is closed
     })
 ```
 
@@ -69,7 +69,7 @@ This method is a native websocket removeEventListener. All event types are the s
     client.removeEventListener("close", () => {})
 ```
 
-## `client.createElements(construction: ScConstruction): ScAddrs[]`
+## `client.generateElements(construction: ScConstruction): ScAddrs[]`
 
 Create specified in ScConstruction elements.
 
@@ -85,56 +85,56 @@ Create specified in ScConstruction elements.
 
     const construction = new ScConstruction();
 
-    construction.createNode(ScType.NodeConst, myNode);
-    construction.createLink(
+    construction.generateNode(ScType.NodeConst, myNode);
+    construction.generateLink(
       ScType.LinkConst,
       new ScLinkContent(linkContent, ScLinkContentType.String),
       myLink
     );
-    construction.createEdge(
+    construction.generateConnector(
       ScType.EdgeAccessConstPosPerm,
       myNode,
       fakeNodeAddr
     );
 
-    const res = await client.createElements(construction);
+    const res = await client.generateElements(construction);
 ```
 
-## `client.createElementsBySCs(scsText: string[] | ISCs[]): boolean[]`
+## `client.generateElementsBySCs(scsText: string[] | ISCs[]): boolean[]`
 
 Create specified in ScConstruction elements by SCs text and puts them in structure. Returned boolean represents whether SCs text processing was 
-successfull.
+successful.
 
 ```ts
     import { client } from "../path-to-client";
 
-    const res = await client.createElementsBySCs(
+    const res = await client.generateElementsBySCs(
         ["my_class -> node1;;", "node1 => relation: node2;;"]
     );
 
-    const res2 = await client.createElementsBySCs(
+    const res2 = await client.generateElementsBySCs(
         [{scs: "my_class -> node1;;", output_structure: new ScAddr(0)}]
     );
 ```
 
-## `client.deleteElements(addrs: ScAddr[]): boolean`
+## `client.eraseElements(addrs: ScAddr[]): boolean`
 
-Delete specified elements. Returned boolean represents whether deleting was successfull.
+Delete specified elements. Returned boolean represents whether deleting was successful.
 
 ```ts
     import { client } from "../path-to-client";
 
-    const res = await client.deleteElements([addr1, addr2]);
+    const res = await client.eraseElements([addr1, addr2]);
 ```
 
-## `client.checkElements(addrs: ScAddr[]): ScType[]`
+## `client.getElementTypes(addrs: ScAddr[]): ScType[]`
 
 With this method you can check if specified elements exist. If element does not exits, returned ScType will be invalid
 
 ```ts
     import { client } from "../path-to-client";
 
-    const res = await client.checkElements([addr1, addr2]);
+    const res = await client.getElementTypes([addr1, addr2]);
 ```
 
 ## `client.setLinkContents(addrs: ScAddr[]): boolean[]`
@@ -161,42 +161,42 @@ With this method you can get link content.
     const res = await client.getLinkContents([nodeAddr]);
 ```
 
-## `client.getLinksByContents(contents: string[]): ScAddr[][]`
+## `client.searchLinksByContents(contents: string[]): ScAddr[][]`
 
-Find links by its contents.
+Search links by its contents.
 
 ```ts
     import { client } from "../path-to-client";
 
-    const res = await client.getLinksByContents(["concept_class"]);
+    const res = await client.searchLinksByContents(["concept_class"]);
     res[0] // link array where link contain content "concept_class"
 ```
 
-## `client.getLinksByContentSubstrings(contents: string[]): ScAddr[][]`
+## `client.searchLinksByContentSubstrings(contents: string[]): ScAddr[][]`
 
-Find links by its content substrings.
+Search links by its content substrings.
 
 ```ts
     import { client } from "../path-to-client";
 
-    const res = await client.getLinksByContentSubstrings(["con"]);
+    const res = await client.searchLinksByContentSubstrings(["con"]);
     res[0] // link array where link contain content with substring "con"
 ```
 
-## `client.getStringsBySubstrings(contents: string[]): string[][]`
+## `client.searchLinkContentsByContentSubstrings(contents: string[]): string[][]`
 
-Find strings by its substrings.
+Search strings by its substrings.
 
 ```ts
     import { client } from "../path-to-client";
 
-    const res = await client.getStringsBySubstrings(["con"]);
+    const res = await client.searchLinkContentsByContentSubstrings(["con"]);
     res[0] // string array that contain content substring "con"
 ```
 
 ## `client.resolveKeynodes<T = string>(Array<{idtf: T, type: ScType}>): Record<T, ScAddr>`
 
-Find or resolve keynodes. When type is valid, element will be resolved by id or found otherwise.
+Search or resolve keynodes. When type is valid, element will be resolved by id or found otherwise.
 
 ```ts
     import { client } from "../path-to-client";
@@ -221,7 +221,7 @@ Find or resolve keynodes. When type is valid, element will be resolved by id or 
     */
 ```
 
-## `client.templateSearch(templ: ScTemplate): ScTemplateResult[]`
+## `client.searchByTemplate(templ: ScTemplate): ScTemplateResult[]`
 
 Search constructions by specified template. When multiple templates are found each array elem represents search result.
 ScTemplates params may contain pairs with address of sc-elements or its system identifiers.
@@ -239,7 +239,7 @@ ScTemplates params may contain pairs with address of sc-elements or its system i
 
     const template = new ScTemplate();
 
-    template.tripleWithRelation(
+    template.quintuple(
       fakeAddr1,
       ScType.EdgeDCommonVar,
       [ScType.NodeVarStruct, circuitDialogAlias],
@@ -255,7 +255,7 @@ ScTemplates params may contain pairs with address of sc-elements or its system i
         [circuitDialogAlias]: fakeDialog,
     };
 
-    const res = await client.templateSearch(template, params);
+    const res = await client.searchByTemplate(template, params);
 ```
 
 Search constructions by specified template address.
@@ -270,7 +270,7 @@ Search constructions by specified template address.
         [circuitDialogAlias]: fakeDialog,
     };
 
-    const res = await client.templateSearch(fakeTemplate, params);
+    const res = await client.searchByTemplate(fakeTemplate, params);
 ```
 
 Search constructions by specified template system identifier.
@@ -283,7 +283,7 @@ Search constructions by specified template system identifier.
         [circuitDialogAlias]: fakeDialog,
     };
 
-    const res = await client.templateSearch('my_template', params);
+    const res = await client.searchByTemplate('my_template', params);
 ```
 
 Search constructions by scs-template.
@@ -296,10 +296,10 @@ Search constructions by scs-template.
         ['_node']: fakeDialog,
     };
 
-    const res = await client.templateSearch('dialog _-> _node;;', params);
+    const res = await client.searchByTemplate('dialog _-> _node;;', params);
 ```
 
-## `client.templateGenerate(templ: ScTemplate): ScTemplateResult`
+## `client.generateByTemplate(templ: ScTemplate): ScTemplateResult`
 
 Generate construction by specified template.
 
@@ -317,7 +317,7 @@ Generate construction by specified template.
 
     const template = new ScTemplate();
 
-    template.tripleWithRelation(
+    template.quintuple(
       fakeAddr1,
       ScType.EdgeDCommonVar,
       [ScType.NodeVarStruct, circuitDialogAlias],
@@ -333,33 +333,33 @@ Generate construction by specified template.
       [dialog]: fakeParamAddr,
     };
 
-    const res = await client.templateGenerate(template, params);
+    const res = await client.generateByTemplate(template, params);
 ```
 
-## `client.eventsCreate(params: ScEventParams[]): ScEvent[]`
+## `client.createElementaryEventSubscriptions(params: ScEventSubscriptionParams[]): ScEventSubscription[]`
 
-Subscribe to event. Event callback, passed to `ScEventParams` constructor, has 4 parameters: subscribedAddr, foundEgde addr, foundNode addr and created eventId. The last one may be used to destroy event after having some specific result.
+Subscribe to event. Event callback, passed to `ScEventSubscriptionParams` constructor, has 4 parameters: subscribedAddr, foundConnector addr, foundNode addr and created eventId. The last one may be used to destroy event after having some specific result.
 
 ```ts
     import { ScAddr } from "ts-sc-client";
     import { client } from "../path-to-client";
 
-    const callback = (subscribedAddr: ScAddr, foundEgde: ScAddr, foundNode: ScAddr, createdEventId: number) => {
+    const callback = (subscribedAddr: ScAddr, foundConnector: ScAddr, foundNode: ScAddr, createdEventId: number) => {
         // some logic here
     }
 
-    const evtParams = new ScEventParams(
+    const evtParams = new ScEventSubscriptionParams(
       fakeAddr2,
       ScEventType.RemoveIngoingEdge,
       callback
     );
 
-    const res = await client.eventsCreate([evtParams]);
+    const res = await client.createElementaryEventSubscriptions([evtParams]);
 ```
 
-## `client.eventsDestroy(eventIds: number[]): boolean`
+## `client.destroyElementaryEventSubscriptions(eventIds: number[]): boolean`
 
-Destroy an event. Input arguments are event ids returned by eventsCreate method. Returns true if events has been deleted.
+Destroy an event. Input arguments are event ids returned by createElementaryEventSubscriptions method. Returns true if events has been deleted.
 
 
 ```ts
@@ -367,10 +367,10 @@ Destroy an event. Input arguments are event ids returned by eventsCreate method.
 
     const eventIds = [1, 2];
 
-    await client.eventsDestroy(eventIds);
+    await client.destroyElementaryEventSubscriptions(eventIds);
 ```
 
-## `client.findKeynodes(...keynodesInShakeCase: string[]): { keynodesInCamelCase: ScAddr }`
+## `client.searchKeynodes(...keynodesInShakeCase: string[]): { keynodesInCamelCase: ScAddr }`
 
 This method is a wrapper on resolveKeynodes. It returns object with specified keynodes strings as described bellow. Also it caches requested keynodes.
 
@@ -386,13 +386,13 @@ Cache implementation works as follows:
 
     const someIncredibleFunction = async () => {
         // Keynodes from arguments put to object
-        const obj = await client.findKeynodes("lang_ru", "some_other_keynode");
+        const obj = await client.searchKeynodes("lang_ru", "some_other_keynode");
         
         // Shake case is transformed to camel case. 
         const { langRu, someOtherKeynode } = obj;
 
         // lang_ru returned from cache, one_more_keynode is requested from server
-        const { langRu, oneMoreKeynode } = await client.findKeynodes("lang_ru", "one_more_keynode");
+        const { langRu, oneMoreKeynode } = await client.searchKeynodes("lang_ru", "one_more_keynode");
     }
 
     someIncredibleFunction();
@@ -415,10 +415,10 @@ Check if addr is equal to another one
 
 ## `addr.value`
 
-alows to get addr value
+allows to get addr value
 
 # ScLinkContent
-An abstruction over link content
+An abstraction over link content
 
 ```ts
 const linkContent = "my_content";
@@ -449,11 +449,11 @@ Transform type to string
 
 Transform string to type
 
-# ScConctruction
-With this class one can make constuctions to create them later in sc-memory
+# ScConstruction
+With this class one can make constructions to create them later in sc-memory
 
-First, one should describe construction sctructure, specifying all nodes, links and edges with it's ScTypes.
-If specified construction element should be used before the construction created it would be nessesary to use optional alias parameters.
+First, one should describe construction structure, specifying all nodes, links and edges with it's ScTypes.
+If specified construction element should be used before the construction created it would be necessary to use optional alias parameters.
 
 ```ts
 const content = new ScLinkContent(linkContent, ScLinkContentType.String),
@@ -464,12 +464,12 @@ const linkAlias = "_link";
 const linkContent = "my_content";
 const construction = new ScConstruction();
 
-construction.createNode(ScType.NodeConst, nodeAlias);
-construction.createLink(
+construction.generateNode(ScType.NodeConst, nodeAlias);
+construction.generateLink(
   ScType.LinkConst,
   linkAlias
 );
-construction.createEdge(
+construction.generateConnector(
   ScType.EdgeAccessConstPosPerm,
   nodeAlias,
   fakeNodeAddr
@@ -479,27 +479,27 @@ construction.createEdge(
 When described, construction may be passed to client to create it in sc-memory
 
 ```ts
-  const res = await client.createElements(construction);
+  const res = await client.generateElements(construction);
 ```
 
-## `construction.createNode(type: ScType, alias?: string): void`
+## `construction.generateNode(type: ScType, alias?: string): void`
 
 Add node to the construction
 
-## `construction.createLink(type: ScType, linkContent: ScLinkContent, alias?: string): void`
+## `construction.generateLink(type: ScType, linkContent: ScLinkContent, alias?: string): void`
 
 Add link to the construction
 
-## `construction.createEdge(type: ScType, src: string | ScAddr, trg: string | ScAddr, alias?: string): void`
+## `construction.generateConnector(type: ScType, source: string | ScAddr, target: string | ScAddr, alias?: string): void`
 
-Add edge to the construction
+Add connector to the construction
 
 ## `construction.getIndex(alias: string): number`
 
-Get an index of spicified alias
+Get an index of specified alias
 
 # ScTemplate
-With this class one can make temple to search or generate it in sc-memory, using `client.templateSearch` and `client.templateGenerate`
+With this class one can make temple to search or generate it in sc-memory, using `client.searchByTemplate` and `client.generateByTemplate`
 
 ```ts
 const circuitDialogAlias = "_circuit_dialog";
@@ -507,7 +507,7 @@ const dialog = "_dialog";
 
 const template = new ScTemplate();
 
-template.tripleWithRelation(
+template.quintuple(
   addr1,
   ScType.EdgeDCommonVar,
   [ScType.NodeVarStruct, circuitDialogAlias],
@@ -521,26 +521,26 @@ template.triple(circuitDialogAlias, ScType.EdgeAccessVarPosPerm, [
 ```
 
 ```ts
-  const searchResult = await client.templateSearch(template);
-  const generateResult = await client.templateGenerate(template);
+  const searchResult = await client.searchByTemplate(template);
+  const generateResult = await client.generateByTemplate(template);
 ```
 
 ## `template.triple(param1: ScTemplateParam, param2: ScTemplateParam, param3: ScTemplateParam): void`
 
-Adds tripple to your template. ScTemplateParam is described bellow:
+Adds triple to your template. ScTemplateParam is described bellow:
 
 ```ts
 type ScTemplateParamValue = string | ScAddr | ScType;
 type ScTemplateParam = [ScTemplateParamValue, string] | ScTemplateParamValue;
 ```
 
-## `template.tripleWithRelation(param1: ScTemplateParam, param2: ScTemplateParam, param3: ScTemplateParam, param4: ScTemplateParam, param5: ScTemplateParam): void`
+## `template.quintuple(param1: ScTemplateParam, param2: ScTemplateParam, param3: ScTemplateParam, param4: ScTemplateParam, param5: ScTemplateParam): void`
 
-Add tripple with relation to your template.
+Add quintuple to your template.
 
-> Warning! It is nessesary to follow the correct elements order as shown bellow
+> Warning! It is necessary to follow the correct elements order as shown bellow
 
-![elements order in tripple with relation](./docs/images/tripple-with-relation.jpg)
+![elements order in quintuple](./docs/images/quintuple.jpg)
 
 # ScType 
 This class is an abstraction over type in sc-memory. It consists of static properties with different types, such as `Link`, `NodeConst`, `NodeStruct`, `NodeVarTuple`, etc. with corresponding check functions `isNode`, `isEdge`, and others.
@@ -548,7 +548,7 @@ This class is an abstraction over type in sc-memory. It consists of static prope
 ```ts
 const construction = new ScConstruction();
 
-construction.createNode(ScType.NodeConst);
+construction.generateNode(ScType.NodeConst);
 ```
 
 # Build
