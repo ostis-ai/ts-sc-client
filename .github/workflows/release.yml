@@ -10,11 +10,11 @@ on:
 
 jobs:
   quality:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [18.x]
     
     steps:
       - uses: actions/checkout@v2
@@ -26,11 +26,11 @@ jobs:
       - run: npm run test
 
   npm-publish:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: quality
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [18.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -48,7 +48,7 @@ jobs:
 
   gh-release:
     needs: npm-publish
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v3
       - name: read changelog

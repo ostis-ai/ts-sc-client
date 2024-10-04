@@ -11,7 +11,7 @@ export interface ScTemplateValue {
 
 export interface ScTemplateTriple {
   source: ScTemplateValue;
-  edge: ScTemplateValue;
+  connector: ScTemplateValue;
   target: ScTemplateValue;
 }
 
@@ -43,14 +43,14 @@ export class ScTemplate {
 
     this._triples.push({
       source: p1,
-      edge: p2,
+      connector: p2,
       target: p3,
     });
 
     return this;
   }
 
-  public tripleWithRelation(
+  public quintuple(
     param1: ScTemplateParam,
     param2: ScTemplateParam,
     param3: ScTemplateParam,
@@ -58,7 +58,7 @@ export class ScTemplate {
     param5: ScTemplateParam
   ): ScTemplate {
     let { alias, value } = this.splitTemplateParam(param2);
-    if (!alias) alias = `edge_1_${this._triples.length}`;
+    if (!alias) alias = `connector_1_${this._triples.length}`;
 
     this.triple(param1, [value, alias], param3);
     this.triple(param5, param4, alias);
@@ -66,10 +66,24 @@ export class ScTemplate {
     return this;
   }
 
+  /*!
+   * @deprecated ScTemplate `tripleWithRelation` method is deprecated. Use `quintuple` instead.
+   */
+  public tripleWithRelation(
+    param1: ScTemplateParam,
+    param2: ScTemplateParam,
+    param3: ScTemplateParam,
+    param4: ScTemplateParam,
+    param5: ScTemplateParam
+  ): ScTemplate {
+    console.warn("Warning: ScTemplate `tripleWithRelation` method is deprecated. Use `quintuple` instead.");
+    return this.quintuple(param1, param2, param3, param4, param5);
+  }
+
   private splitTemplateParam(param: ScTemplateParam): ScTemplateValue {
     if (param instanceof Array) {
       if (param.length !== 2) {
-        throw "Invalid number of values for remplacement. Use [ScType | ScAddr, string]";
+        throw "Invalid number of values for replacement. Use [ScType | ScAddr, string]";
       }
 
       const value = param[0];

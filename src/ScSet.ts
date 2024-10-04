@@ -1,7 +1,7 @@
 import { ScAddr } from "./ScAddr";
 import { ScClient } from "./ScClient";
-import { ScEvent, ScEventType } from "./ScEvent";
-import { ScEventParams } from "./ScEventParams";
+import { ScEventSubscription, ScEventType } from "./ScEventSubscription";
+import { ScEventSubscriptionParams } from "./ScEventSubscriptionParams";
 import { ScTemplate } from "./ScTemplate";
 import { ScTemplateResult } from "./ScTemplateResult";
 import { ScType } from "./ScType";
@@ -31,8 +31,8 @@ export class ScSet {
   private _onInitialize: CallbackInitialize | null = null;
   private _filterType: ScType | null | undefined = null; // just elements with this type will be processed by set
 
-  private _evtAddElement: ScEvent | undefined;
-  private _evtRemoveElement: ScEvent | undefined;
+  private _evtGenerateElement: ScEventSubscription | undefined;
+  private _evtEraseElement: ScEventSubscription | undefined;
 
   constructor(
     scClient: ScClient,
@@ -57,21 +57,21 @@ export class ScSet {
     // subscribe to events
     if (!this._addr) return;
 
-    const events = await this._scClient?.eventsCreate([
-      new ScEventParams(
+    const eventSubscriptions = await this._scClient?.createElementaryEventSubscriptions([
+      new ScEventSubscriptionParams(
         this._addr,
-        ScEventType.AddOutgoingEdge,
-        this.onEventAddElement.bind(this)
+        ScEventType.AfterGenerateOutgoingArc,
+        this.onEventGenerateElement.bind(this)
       ),
-      new ScEventParams(
+      new ScEventSubscriptionParams(
         this._addr,
-        ScEventType.RemoveOutgoingEdge,
-        this.onEventRemoveElement.bind(this)
+        ScEventType.BeforeEraseOutgoingArc,
+        this.onEventEraseElement.bind(this)
       ),
     ]);
 
-    this._evtAddElement = events?.[0];
-    this._evtRemoveElement = events?.[1];
+    this._evtGenerateElement = eventSubscriptions?.[0];
+    this._evtEraseElement = eventSubscriptions?.[1];
 
     await this.iterateExistingElements();
 
@@ -81,7 +81,7 @@ export class ScSet {
   }
 
   private async shouldAppend(addrs: ScAddr[]): Promise<boolean[] | undefined> {
-    const types = await this._scClient?.checkElements(addrs);
+    const types = await this._scClient?.getElementsTypes(addrs);
     const result = types?.map((t: ScType) => {
       return !(
         this._filterType &&
@@ -94,17 +94,17 @@ export class ScSet {
     });
   }
 
-  private async onEventAddElement(
+  private async onEventGenerateElement(
     setAddr: ScAddr,
-    edgeAddr: ScAddr,
+    connectorAddr: ScAddr,
     itemAddr: ScAddr
   ): Promise<void> {
-    if (!this._elements[edgeAddr.value]) {
+    if (!this._elements[connectorAddr.value]) {
       if (itemAddr.isValid()) {
         const checks = await this.shouldAppend([itemAddr]);
         const append = checks?.[0];
         if (append) {
-          this._elements[edgeAddr.value] = itemAddr;
+          this._elements[connectorAddr.value] = itemAddr;
           this.callOnAdd(itemAddr);
         }
       }
@@ -115,16 +115,16 @@ export class ScSet {
     });
   }
 
-  private async onEventRemoveElement(
+  private async onEventEraseElement(
     setAddr: ScAddr,
-    edgeAddr: ScAddr
+    connectorAddr: ScAddr
   ): Promise<void> {
-    const trg: ScAddr = this._elements[edgeAddr.value];
+    const trg: ScAddr = this._elements[connectorAddr.value];
     if (!trg)
-      throw `Invalid state of set: ${this._addr} (try to remove element ${edgeAddr}, that doesn't exist)`;
+      throw `Invalid state of set: ${this._addr} (try to remove element ${connectorAddr}, that doesn't exist)`;
 
     await this.callOnRemove(trg);
-    delete this._elements[edgeAddr.value];
+    delete this._elements[connectorAddr.value];
 
     return new Promise<void>(function (resolve) {
       resolve();
@@ -172,7 +172,7 @@ export class ScSet {
       [ScType.Unknown, "_item"]
     );
 
-    const searchRes = await this._scClient.templateSearch(templ);
+    const searchRes = await this._scClient.searchByTemplate(templ);
     const forCheck =
       searchRes?.map((v: ScTemplateResult) => v.get("_item")) || [];
 
@@ -217,9 +217,9 @@ export class ScSet {
       [el, "_item"]
     );
 
-    const searchRes = await this._scClient.templateSearch(templ);
+    const searchRes = await this._scClient.searchByTemplate(templ);
     if (searchRes.length == 0) {
-      const genRes = await this._scClient.templateGenerate(templ, {
+      const genRes = await this._scClient.generateByTemplate(templ, {
         _item: el,
       });
       if (genRes) {

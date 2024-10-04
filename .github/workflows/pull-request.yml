@@ -7,7 +7,7 @@ on:
 jobs:
   check-pr-commits:
     name: Check commit messages
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: GS Commit Message Checker
@@ -30,10 +30,10 @@ jobs:
 
   build:
     name: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [18.x]
 
     steps:
       - uses: actions/checkout@v2

@@ -5,10 +5,10 @@ on: [push, pull_request]
 jobs:
   test:
     name: test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [1.x]
 
     steps:
       - uses: actions/checkout@v2
