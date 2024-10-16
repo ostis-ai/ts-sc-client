@@ -37,7 +37,7 @@ describe("ScClient", () => {
 
   test("generateElements", async () => {
     const preparationConstruction = new ScConstruction();
-    preparationConstruction.generateNode(ScType.NodeConst);
+    preparationConstruction.generateNode(ScType.ConstNode);
     const addrs = await client.generateElements(preparationConstruction);
     await server.nextMessage;
 
@@ -49,14 +49,14 @@ describe("ScClient", () => {
 
     const construction = new ScConstruction();
 
-    construction.generateNode(ScType.NodeConst, myNode);
+    construction.generateNode(ScType.ConstNode, myNode);
     construction.generateLink(
-      ScType.LinkConst,
+      ScType.ConstNodeLink,
       new ScLinkContent(linkContent, ScLinkContentType.String),
       myLink
     );
     construction.generateConnector(
-      ScType.EdgeAccessConstPosPerm,
+      ScType.ConstPermPosArc,
       myNode,
       fakeNodeAddr
     );
@@ -72,11 +72,11 @@ describe("ScClient", () => {
         payload: expect.arrayContaining([
           {
             el: "node",
-            type: ScType.NodeConst.value,
+            type: ScType.ConstNode.value,
           },
           {
             el: "link",
-            type: ScType.LinkConst.value,
+            type: ScType.ConstNodeLink.value,
             content: linkContent,
             content_type: ScLinkContentType.String,
           },
@@ -90,7 +90,7 @@ describe("ScClient", () => {
               type: "addr",
               value: fakeNodeAddr.value,
             },
-            type: ScType.EdgeAccessConstPosPerm.value,
+            type: ScType.ConstPermPosArc.value,
           },
         ]),
       })
@@ -145,7 +145,7 @@ describe("ScClient", () => {
 
   test("generateElementsBySCsWithOutputStruct", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
+    construction.generateNode(ScType.ConstNode);
     const addrs = await client.generateElements(construction);
     await server.nextMessage;
 
@@ -215,8 +215,8 @@ describe("ScClient", () => {
 
   test("eraseElements", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
+    construction.generateNode(ScType.ConstNode);
+    construction.generateNode(ScType.ConstNode);
     const addrs = await client.generateElements(construction);
     await server.nextMessage;
 
@@ -240,8 +240,8 @@ describe("ScClient", () => {
 
   test("getElementsTypes", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
+    construction.generateNode(ScType.ConstNode);
+    construction.generateNode(ScType.ConstNode);
     const addrs = await client.generateElements(construction);
     await server.nextMessage;
 
@@ -267,7 +267,7 @@ describe("ScClient", () => {
   test("setContent", async () => {
     const construction = new ScConstruction();
     construction.generateLink(
-      ScType.LinkConst,
+      ScType.ConstNodeLink,
       new ScLinkContent("old_content", ScLinkContentType.String)
     );
     const addrs = await client.generateElements(construction);
@@ -304,7 +304,7 @@ describe("ScClient", () => {
     const content = "my_content";
     const construction = new ScConstruction();
     construction.generateLink(
-      ScType.LinkConst,
+      ScType.ConstNodeLink,
       new ScLinkContent(content, ScLinkContentType.String)
     );
     const addrs = await client.generateElements(construction);
@@ -428,7 +428,7 @@ describe("ScClient", () => {
     const id2 = "id2";
 
     const keynodes = [
-      { id: id1, type: ScType.NodeConst },
+      { id: id1, type: ScType.ConstNode },
       { id: id2, type: new ScType() },
     ];
 
@@ -443,7 +443,7 @@ describe("ScClient", () => {
       expect.objectContaining({
         type: "keynodes",
         payload: expect.arrayContaining([
-          { command: "resolve", idtf: id1, elType: ScType.NodeConst.value },
+          { command: "resolve", idtf: id1, elType: ScType.ConstNode.value },
           { command: "find", idtf: id2 },
         ]),
       })
@@ -452,8 +452,8 @@ describe("ScClient", () => {
 
   test("searchByTemplate", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
+    construction.generateNode(ScType.ConstNode);
+    construction.generateNode(ScType.ConstNode);
     const addrs = await client.generateElements(construction);
     await server.nextMessage;
 
@@ -467,13 +467,13 @@ describe("ScClient", () => {
 
     template.quintuple(
       fakeNodeAddr1,
-      ScType.EdgeDCommonVar,
-      [ScType.NodeVarStruct, circuitDialogAlias],
-      ScType.EdgeAccessVarPosPerm,
+      ScType.VarCommonArc,
+      [ScType.VarNodeStructure, circuitDialogAlias],
+      ScType.VarPermPosArc,
       fakeNodeAddr2
     );
-    template.triple(circuitDialogAlias, ScType.EdgeAccessVarPosPerm, [
-      ScType.NodeVar,
+    template.triple(circuitDialogAlias, ScType.VarPermPosArc, [
+      ScType.VarNode,
       dialog,
     ]);
 
@@ -493,23 +493,23 @@ describe("ScClient", () => {
               {
                 alias: expect.any(String),
                 type: "type",
-                value: ScType.EdgeDCommonVar.value,
+                value: ScType.VarCommonArc.value,
               },
               {
                 alias: circuitDialogAlias,
                 type: "type",
-                value: ScType.NodeVarStruct.value,
+                value: ScType.VarNodeStructure.value,
               },
             ]),
             expect.arrayContaining([
               { type: "addr", value: fakeNodeAddr2.value },
-              { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
+              { type: "type", value: ScType.VarPermPosArc.value },
               { type: "alias", value: expect.any(String) },
             ]),
             expect.arrayContaining([
               { type: "alias", value: circuitDialogAlias },
-              { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
-              { alias: dialog, type: "type", value: ScType.NodeVar.value },
+              { type: "type", value: ScType.VarPermPosArc.value },
+              { alias: dialog, type: "type", value: ScType.VarNode.value },
             ]),
           ]),
         }),
@@ -537,8 +537,8 @@ describe("ScClient", () => {
 
   test("searchByTemplateByString", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
+    construction.generateNode(ScType.ConstNode);
+    construction.generateNode(ScType.ConstNode);
     const addrs = await client.generateElements(construction);
     await server.nextMessage;
 
@@ -575,8 +575,8 @@ describe("ScClient", () => {
 
   test("searchByTemplateByAddr", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConstStruct);
+    construction.generateNode(ScType.ConstNode);
+    construction.generateNode(ScType.ConstNodeStructure);
     const addrs = await client.generateElements(construction);
     await server.nextMessage;
 
@@ -613,9 +613,9 @@ describe("ScClient", () => {
 
   test("generateByTemplate", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
+    construction.generateNode(ScType.ConstNode);
+    construction.generateNode(ScType.ConstNode);
+    construction.generateNode(ScType.ConstNode);
     const addrs = await client.generateElements(construction);
     await server.nextMessage;
 
@@ -630,13 +630,13 @@ describe("ScClient", () => {
 
     template.quintuple(
       fakeNodeAddr1,
-      ScType.EdgeDCommonVar,
-      [ScType.NodeVarStruct, circuitDialogAlias],
-      ScType.EdgeAccessVarPosPerm,
+      ScType.VarCommonArc,
+      [ScType.VarNodeStructure, circuitDialogAlias],
+      ScType.VarPermPosArc,
       fakeNodeAddr2
     );
-    template.triple(circuitDialogAlias, ScType.EdgeAccessVarPosPerm, [
-      ScType.NodeVar,
+    template.triple(circuitDialogAlias, ScType.VarPermPosArc, [
+      ScType.VarNode,
       dialog,
     ]);
 
@@ -658,23 +658,23 @@ describe("ScClient", () => {
               {
                 alias: expect.any(String),
                 type: "type",
-                value: ScType.EdgeDCommonVar.value,
+                value: ScType.VarCommonArc.value,
               },
               {
                 alias: circuitDialogAlias,
                 type: "type",
-                value: ScType.NodeVarStruct.value,
+                value: ScType.VarNodeStructure.value,
               },
             ]),
             expect.arrayContaining([
               { type: "addr", value: fakeNodeAddr2.value },
-              { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
+              { type: "type", value: ScType.VarPermPosArc.value },
               { type: "alias", value: expect.any(String) },
             ]),
             expect.arrayContaining([
               { type: "alias", value: circuitDialogAlias },
-              { type: "type", value: ScType.EdgeAccessVarPosPerm.value },
-              { alias: dialog, type: "type", value: ScType.NodeVar.value },
+              { type: "type", value: ScType.VarPermPosArc.value },
+              { alias: dialog, type: "type", value: ScType.VarNode.value },
             ]),
           ]),
           params: {
@@ -704,8 +704,8 @@ describe("ScClient", () => {
 
   test("generateByTemplateByString", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConst);
+    construction.generateNode(ScType.ConstNode);
+    construction.generateNode(ScType.ConstNode);
     const addrs = await client.generateElements(construction);
     await server.nextMessage;
 
@@ -741,8 +741,8 @@ describe("ScClient", () => {
 
   test("generateByTemplateByAddr", async () => {
     const construction = new ScConstruction();
-    construction.generateNode(ScType.NodeConst);
-    construction.generateNode(ScType.NodeConstStruct);
+    construction.generateNode(ScType.ConstNode);
+    construction.generateNode(ScType.ConstNodeStructure);
     const addrs = await client.generateElements(construction);
     await server.nextMessage;
 
@@ -780,8 +780,8 @@ describe("ScClient", () => {
     const eventCallback = jest.fn();
 
     const preparationConstruction = new ScConstruction();
-    preparationConstruction.generateNode(ScType.NodeConst);
-    preparationConstruction.generateNode(ScType.NodeConst);
+    preparationConstruction.generateNode(ScType.ConstNode);
+    preparationConstruction.generateNode(ScType.ConstNode);
     const addrs = await client.generateElements(preparationConstruction);
     await server.nextMessage;
 
@@ -804,7 +804,7 @@ describe("ScClient", () => {
     const construction = new ScConstruction();
 
     construction.generateConnector(
-      ScType.EdgeAccessConstPosPerm,
+      ScType.ConstPermPosArc,
       fakeNodeAddr2,
       fakeNodeAddr1
     );

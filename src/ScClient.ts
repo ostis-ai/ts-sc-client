@@ -222,26 +222,26 @@ export class ScClient {
     return new Promise<ScAddr[]>((resolve, reject) => {
       const payload = construction.commands
         .map((cmd) => {
-          if (cmd.type.isNode()) {
-            return {
-              el: "node",
-              type: cmd.type.value,
-            };
-          }
-          if (cmd.type.isEdge()) {
-            return {
-              el: "edge",
-              type: cmd.type.value,
-              src: transformConnectorInfo(construction, cmd.data.src),
-              trg: transformConnectorInfo(construction, cmd.data.trg),
-            };
-          }
           if (cmd.type.isLink()) {
             return {
               el: "link",
               type: cmd.type.value,
               content: cmd.data.content,
               content_type: cmd.data.type,
+            };
+          }
+          else if (cmd.type.isNode()) {
+            return {
+              el: "node",
+              type: cmd.type.value,
+            };
+          }
+          else if (cmd.type.isConnector()) {
+            return {
+              el: "edge",
+              type: cmd.type.value,
+              src: transformConnectorInfo(construction, cmd.data.src),
+              trg: transformConnectorInfo(construction, cmd.data.trg),
             };
           }
 
@@ -614,7 +614,7 @@ export class ScClient {
   ): Promise<KeynodesToObject<K>> {
     const newKeynodes = keynodes
       .filter((keynode) => !this._keynodesCache.get(keynode))
-      .map((keynode) => ({ id: keynode, type: ScType.NodeConst }));
+      .map((keynode) => ({ id: keynode, type: ScType.ConstNode }));
     const cacheKeynodes = keynodes.filter((keynode) =>
       this._keynodesCache.get(keynode)
     );

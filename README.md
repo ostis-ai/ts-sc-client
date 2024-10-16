@@ -85,14 +85,14 @@ Create specified in ScConstruction elements.
 
     const construction = new ScConstruction();
 
-    construction.generateNode(ScType.NodeConst, myNode);
+    construction.generateNode(ScType.ConstNode, myNode);
     construction.generateLink(
-      ScType.LinkConst,
+      ScType.ConstNodeLink,
       new ScLinkContent(linkContent, ScLinkContentType.String),
       myLink
     );
     construction.generateConnector(
-      ScType.EdgeAccessConstPosPerm,
+      ScType.ConstPermPosArc,
       myNode,
       fakeNodeAddr
     );
@@ -205,7 +205,7 @@ Search or resolve keynodes. When type is valid, element will be resolved by id o
     const id2 = "my_id2";
 
     const keynodes = [
-      { id: id1, type: ScType.EdgeDCommon },
+      { id: id1, type: ScType.CommonArc },
       { id: id2, type: new ScType() },
     ];
 
@@ -241,13 +241,13 @@ ScTemplates params may contain pairs with address of sc-elements or its system i
 
     template.quintuple(
       fakeAddr1,
-      ScType.EdgeDCommonVar,
-      [ScType.NodeVarStruct, circuitDialogAlias],
-      ScType.EdgeAccessVarPosPerm,
+      ScType.VarCommonArc,
+      [ScType.VarNodeStructure, circuitDialogAlias],
+      ScType.VarPermPosArc,
       fakeAddr2
     );
-    template.triple(circuitDialogAlias, ScType.EdgeAccessVarPosPerm, [
-      ScType.NodeVar,
+    template.triple(circuitDialogAlias, ScType.VarPermPosArc, [
+      ScType.VarNode,
       dialog,
     ]);
 
@@ -319,13 +319,13 @@ Generate construction by specified template.
 
     template.quintuple(
       fakeAddr1,
-      ScType.EdgeDCommonVar,
-      [ScType.NodeVarStruct, circuitDialogAlias],
-      ScType.EdgeAccessVarPosPerm,
+      ScType.VarCommonArc,
+      [ScType.VarNodeStructure, circuitDialogAlias],
+      ScType.VarPermPosArc,
       fakeAddr2
     );
-    template.triple(circuitDialogAlias, ScType.EdgeAccessVarPosPerm, [
-      ScType.NodeVar,
+    template.triple(circuitDialogAlias, ScType.VarPermPosArc, [
+      ScType.VarNode,
       dialog,
     ]);
 
@@ -452,7 +452,7 @@ Transform string to type
 # ScConstruction
 With this class one can make constructions to create them later in sc-memory
 
-First, one should describe construction structure, specifying all nodes, links and edges with it's ScTypes.
+First, one should describe construction structure, specifying all nodes, links and connectors with it's ScTypes.
 If specified construction element should be used before the construction created it would be necessary to use optional alias parameters.
 
 ```ts
@@ -464,13 +464,13 @@ const linkAlias = "_link";
 const linkContent = "my_content";
 const construction = new ScConstruction();
 
-construction.generateNode(ScType.NodeConst, nodeAlias);
+construction.generateNode(ScType.ConstNode, nodeAlias);
 construction.generateLink(
-  ScType.LinkConst,
+  ScType.ConstNodeLink,
   linkAlias
 );
 construction.generateConnector(
-  ScType.EdgeAccessConstPosPerm,
+  ScType.ConstPermPosArc,
   nodeAlias,
   fakeNodeAddr
 );
@@ -509,13 +509,13 @@ const template = new ScTemplate();
 
 template.quintuple(
   addr1,
-  ScType.EdgeDCommonVar,
-  [ScType.NodeVarStruct, circuitDialogAlias],
-  ScType.EdgeAccessVarPosPerm,
+  ScType.VarCommonArc,
+  [ScType.VarNodeStructure, circuitDialogAlias],
+  ScType.VarPermPosArc,
   addr2
 );
-template.triple(circuitDialogAlias, ScType.EdgeAccessVarPosPerm, [
-  ScType.NodeVar,
+template.triple(circuitDialogAlias, ScType.VarPermPosArc, [
+  ScType.VarNode,
   dialog,
 ]);
 ```
@@ -543,12 +543,12 @@ Add quintuple to your template.
 ![elements order in quintuple](./docs/images/quintuple.jpg)
 
 # ScType 
-This class is an abstraction over type in sc-memory. It consists of static properties with different types, such as `Link`, `NodeConst`, `NodeStruct`, `NodeVarTuple`, etc. with corresponding check functions `isNode`, `isEdge`, and others.
+This class is an abstraction over type in sc-memory. It consists of static properties with different types, such as `Link`, `NodeConst`, `NodeStructure`, `NodeVarTuple`, etc. with corresponding check functions `isNode`, `isConnector`, and others.
 
 ```ts
 const construction = new ScConstruction();
 
-construction.generateNode(ScType.NodeConst);
+construction.generateNode(ScType.ConstNode);
 ```
 
 # Build

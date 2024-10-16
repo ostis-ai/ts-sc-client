@@ -168,7 +168,7 @@ export class ScSet {
     const templ: ScTemplate = new ScTemplate();
     templ.triple(
       this._addr,
-      [ScType.EdgeAccessVarPosPerm, "_edge"],
+      [ScType.VarPermPosArc, "_edge"],
       [ScType.Unknown, "_item"]
     );
 
@@ -213,7 +213,7 @@ export class ScSet {
     const templ: ScTemplate = new ScTemplate();
     templ.triple(
       this._addr,
-      [ScType.EdgeAccessVarPosPerm, "_edge"],
+      [ScType.VarPermPosArc, "_edge"],
       [el, "_item"]
     );
 
