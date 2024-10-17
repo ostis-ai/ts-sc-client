@@ -543,7 +543,7 @@ Add quintuple to your template.
 ![elements order in quintuple](./docs/images/quintuple.jpg)
 
 # ScType 
-This class is an abstraction over type in sc-memory. It consists of static properties with different types, such as `Link`, `NodeConst`, `NodeStructure`, `NodeVarTuple`, etc. with corresponding check functions `isNode`, `isConnector`, and others.
+This class is an abstraction over type in sc-memory. It consists of static properties with different types, such as `NodeLink`, `NodeConst`, `NodeStructure`, `NodeVarTuple`, `ConstCommonArc`, `ConstPermPosArc`, etc. with corresponding check functions `isNode`, `isConnector`, and others.
 
 ```ts
 const construction = new ScConstruction();

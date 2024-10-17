@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New sc-event types: `AfterGenerateConnector`, `AfterGenerateEdge`, `BeforeEraseConnector`, `BeforeEraseEdge` were added.
 
-- All sc-types were also redesigned to a common style. They were deprecated, new ones were added. See changes in the table below.
+- All sc-types were redesigned to a common style. They were deprecated, new ones were added. See changes in the table below.
   
   | Deprecated                    | Substitution               |
   |-------------------------------|----------------------------|
@@ -85,9 +85,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   | ScType.NodeVarClass           | ScType.VarNodeClass       |
   | ScType.NodeVarMaterial        | ScType.VarNodeMaterial    |
 
-  From now on, all sc-links are sc-nodes. Types of actual and inactual temporal membership sc-arc were added.
-  Also, all possible combinations of subtypes in sc-types have been added to the ScType.
-
+- All sc-links are sc-nodes.
+- Types of actual and inactual temporal membership sc-arc were added.
+- All possible combinations of subtypes in sc-types have been added to the ScType.
 - Type `ScType.NodeAbstract` was removed.
 
 ### Added
