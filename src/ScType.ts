@@ -20,7 +20,7 @@ import {
   sc_type_node_class,
   sc_type_node_superclass,
   sc_type_node_material,
-  sc_type_node_no_role,
+  sc_type_node_non_role,
   sc_type_node_role,
   sc_type_node_structure,
   sc_type_node_tuple,
@@ -154,8 +154,8 @@ export class ScType {
     return this.hasSubtype(sc_type_node_role);
   }
 
-  public isNoRole(): boolean {
-    return this.hasSubtype(sc_type_node_no_role);
+  public isNonRole(): boolean {
+    return this.hasSubtype(sc_type_node_non_role);
   }
 
   public isClass(): boolean {
@@ -379,7 +379,7 @@ export class ScType {
   static readonly NodeTuple = new ScType(sc_type_node_tuple);
   static readonly NodeStructure = new ScType(sc_type_node_structure);
   static readonly NodeRole = new ScType(sc_type_node_role);
-  static readonly NodeNoRole = new ScType(sc_type_node_no_role);
+  static readonly NodeNonRole = new ScType(sc_type_node_non_role);
   static readonly NodeClass = new ScType(sc_type_node_class);
   static readonly NodeSuperclass = new ScType(sc_type_node_superclass);
   static readonly NodeMaterial = new ScType(sc_type_node_material);
@@ -389,7 +389,7 @@ export class ScType {
   static readonly ConstNodeTuple = new ScType(sc_type_const | sc_type_node_tuple);
   static readonly ConstNodeStructure = new ScType(sc_type_const | sc_type_node_structure);
   static readonly ConstNodeRole = new ScType(sc_type_const | sc_type_node_role);
-  static readonly ConstNodeNoRole = new ScType(sc_type_const | sc_type_node_no_role);
+  static readonly ConstNodeNonRole = new ScType(sc_type_const | sc_type_node_non_role);
   static readonly ConstNodeClass = new ScType(sc_type_const | sc_type_node_class);
   static readonly ConstNodeSuperclass = new ScType(sc_type_const | sc_type_node_superclass);
   static readonly ConstNodeMaterial = new ScType(sc_type_const | sc_type_node_material);
@@ -399,7 +399,7 @@ export class ScType {
   static readonly VarNodeTuple = new ScType(sc_type_var | sc_type_node_tuple);
   static readonly VarNodeStructure = new ScType(sc_type_var | sc_type_node_structure);
   static readonly VarNodeRole = new ScType(sc_type_var | sc_type_node_role);
-  static readonly VarNodeNoRole = new ScType(sc_type_var | sc_type_node_no_role);
+  static readonly VarNodeNonRole = new ScType(sc_type_var | sc_type_node_non_role);
   static readonly VarNodeClass = new ScType(sc_type_var | sc_type_node_class);
   static readonly VarNodeSuperclass = new ScType(sc_type_var | sc_type_node_superclass);
   static readonly VarNodeMaterial = new ScType(sc_type_var | sc_type_node_material);
@@ -551,9 +551,9 @@ export class ScType {
   static readonly NodeConstRole = new ScType(ScType.ConstNodeRole);
 
   /*!
-  * @deprecated NodeConstNoRole is deprecated. Use ConstNodeNoRole instead.
+  * @deprecated NodeConstNonRole is deprecated. Use ConstNodeNonRole instead.
   */
-  static readonly NodeConstNoRole = new ScType(ScType.ConstNodeNoRole);
+  static readonly NodeConstNonRole = new ScType(ScType.ConstNodeNonRole);
 
   /*!
   * @deprecated NodeConstClass is deprecated. Use ConstNodeClass instead.
@@ -591,9 +591,9 @@ export class ScType {
   static readonly NodeVarRole = new ScType(ScType.VarNodeRole);
 
   /*!
-  * @deprecated NodeVarNoRole is deprecated. Use VarNodeNoRole instead.
+  * @deprecated NodeVarNonRole is deprecated. Use VarNodeNonRole instead.
   */
-  static readonly NodeVarNoRole = new ScType(ScType.VarNodeNoRole);
+  static readonly NodeVarNonRole = new ScType(ScType.VarNodeNonRole);
 
   /*!
   * @deprecated NodeVarClass is deprecated. Use VarNodeClass instead.

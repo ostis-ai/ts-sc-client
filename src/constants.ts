@@ -31,7 +31,7 @@ export const sc_type_node_link = (sc_type_node | 0x2)
 export const sc_type_node_tuple = (sc_type_node | 0x80)
 export const sc_type_node_structure = (sc_type_node | 0x100)
 export const sc_type_node_role = (sc_type_node | 0x200)
-export const sc_type_node_no_role = (sc_type_node | 0x400)
+export const sc_type_node_non_role = (sc_type_node | 0x400)
 export const sc_type_node_class = (sc_type_node | 0x800)
 export const sc_type_node_superclass = (sc_type_node | 0x1000)
 export const sc_type_node_material = (sc_type_node | 0x2000)
@@ -51,7 +51,7 @@ export const sc_type_common_arc_mask = (sc_type_common_arc)
 export const sc_type_common_edge_mask = (sc_type_common_edge)
 
 export const sc_type_node_mask = (
-    sc_type_node_link | sc_type_node_tuple | sc_type_node_structure | sc_type_node_role | sc_type_node_no_role
+    sc_type_node_link | sc_type_node_tuple | sc_type_node_structure | sc_type_node_role | sc_type_node_non_role
     | sc_type_node_class | sc_type_node_superclass | sc_type_node_material)
 export const sc_type_node_link_mask = (sc_type_node | sc_type_node_link | sc_type_node_class)
 
