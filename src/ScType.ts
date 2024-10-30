@@ -551,9 +551,9 @@ export class ScType {
   static readonly NodeConstRole = new ScType(ScType.ConstNodeRole);
 
   /*!
-  * @deprecated NodeConstNonRole is deprecated. Use ConstNodeNonRole instead.
+  * @deprecated NodeConstNoRole is deprecated. Use ConstNodeNonRole instead.
   */
-  static readonly NodeConstNonRole = new ScType(ScType.ConstNodeNonRole);
+  static readonly NodeConstNoRole = new ScType(ScType.ConstNodeNonRole);
 
   /*!
   * @deprecated NodeConstClass is deprecated. Use ConstNodeClass instead.
@@ -591,9 +591,9 @@ export class ScType {
   static readonly NodeVarRole = new ScType(ScType.VarNodeRole);
 
   /*!
-  * @deprecated NodeVarNonRole is deprecated. Use VarNodeNonRole instead.
+  * @deprecated NodeVarNoRole is deprecated. Use VarNodeNonRole instead.
   */
-  static readonly NodeVarNonRole = new ScType(ScType.VarNodeNonRole);
+  static readonly NodeVarNoRole = new ScType(ScType.VarNodeNonRole);
 
   /*!
   * @deprecated NodeVarClass is deprecated. Use VarNodeClass instead.

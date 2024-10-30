@@ -73,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   | ScType.NodeConstTuple         | ScType.ConstNodeTuple     |
   | ScType.NodeConstStruct        | ScType.ConstNodeStructure |
   | ScType.NodeConstRole          | ScType.ConstNodeRole      |
-  | ScType.NodeConstNonRole        | ScType.ConstNodeNonRole    |
+  | ScType.NodeConstNoRole        | ScType.ConstNodeNonRole   |
   | ScType.NodeConstClass         | ScType.ConstNodeClass     |
   | ScType.NodeConstMaterial      | ScType.ConstNodeMaterial  |
   | ScType.LinkVar                | ScType.VarNodeLink        |
@@ -81,7 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   | ScType.NodeVarStruct          | ScType.VarNodeStructure   |
   | ScType.NodeVarTuple           | ScType.VarNodeTuple       |
   | ScType.NodeVarRole            | ScType.VarNodeRole        |
-  | ScType.NodeVarNonRole          | ScType.VarNodeNonRole      |
+  | ScType.NodeVarNoRole          | ScType.VarNodeNonRole     |
   | ScType.NodeVarClass           | ScType.VarNodeClass       |
   | ScType.NodeVarMaterial        | ScType.VarNodeMaterial    |
 
@@ -110,7 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 - ScType methods: `isEdge`, `isStruct`
-- sc-types: `ScType.EdgeUCommon`, `ScType.EdgeDCommon`, `ScType.EdgeUCommonConst`, `ScType.EdgeDCommonConst`, `ScType.EdgeAccess`, `ScType.EdgeAccessConstPosPerm`, `ScType.EdgeAccessConstNegPerm`, `ScType.EdgeAccessConstFuzPerm`, `ScType.EdgeAccessConstPosTemp`, `ScType.EdgeAccessConstNegTemp`, `ScType.EdgeAccessConstFuzTemp`, `ScType.EdgeUCommonVar`, `ScType.EdgeDCommonVar`, `ScType.EdgeAccessVarPosPerm`, `ScType.EdgeAccessVarNegPerm`, `ScType.EdgeAccessVarFuzPerm`, `ScType.EdgeAccessVarPosTemp`, `ScType.EdgeAccessVarNegTemp`, `ScType.EdgeAccessVarFuzTemp`, `ScType.NodeConst`, `ScType.NodeVar`, `ScType.Link`, `ScType.LinkClass`, `ScType.NodeStruct`, `ScType.LinkConst`, `ScType.LinkConstClass`, `ScType.NodeConstTuple`, `ScType.NodeConstStruct`, `ScType.NodeConstRole`, `ScType.NodeConstNonRole`, `ScType.NodeConstClass`, `ScType.NodeConstMaterial`, `ScType.LinkVar`, `ScType.LinkVarClass`, `ScType.NodeVarStruct`, `ScType.NodeVarTuple`, `ScType.NodeVarRole`, `ScType.NodeVarNonRole`, `ScType.NodeVarClass`, `ScType.NodeVarMaterial`
+- sc-types: `ScType.EdgeUCommon`, `ScType.EdgeDCommon`, `ScType.EdgeUCommonConst`, `ScType.EdgeDCommonConst`, `ScType.EdgeAccess`, `ScType.EdgeAccessConstPosPerm`, `ScType.EdgeAccessConstNegPerm`, `ScType.EdgeAccessConstFuzPerm`, `ScType.EdgeAccessConstPosTemp`, `ScType.EdgeAccessConstNegTemp`, `ScType.EdgeAccessConstFuzTemp`, `ScType.EdgeUCommonVar`, `ScType.EdgeDCommonVar`, `ScType.EdgeAccessVarPosPerm`, `ScType.EdgeAccessVarNegPerm`, `ScType.EdgeAccessVarFuzPerm`, `ScType.EdgeAccessVarPosTemp`, `ScType.EdgeAccessVarNegTemp`, `ScType.EdgeAccessVarFuzTemp`, `ScType.NodeConst`, `ScType.NodeVar`, `ScType.Link`, `ScType.LinkClass`, `ScType.NodeStruct`, `ScType.LinkConst`, `ScType.LinkConstClass`, `ScType.NodeConstTuple`, `ScType.NodeConstStruct`, `ScType.NodeConstRole`, `ScType.NodeConstNoRole`, `ScType.NodeConstClass`, `ScType.NodeConstMaterial`, `ScType.LinkVar`, `ScType.LinkVarClass`, `ScType.NodeVarStruct`, `ScType.NodeVarTuple`, `ScType.NodeVarRole`, `ScType.NodeVarNoRole`, `ScType.NodeVarClass`, `ScType.NodeVarMaterial`
 - ScTemplate methods: `tripleWithRelation`
 - ScClient methods: `checkElements`, `createElements`, `createNode`, `createLink`, `createEdge`, `createElementsBySCs`, `deleteElements`, `getLinksByContents`, `getLinksByContentSubstrings`, `getLinksContentsByContentSubstrings`, `templateSearch`, `templateGenerate`, `eventsCreate`, `eventsDestroy`, `findKeynodes`
 
