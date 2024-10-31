@@ -2,7 +2,7 @@
 
 <img src="https://github.com/ostis-ai/ts-sc-client/actions/workflows/test.yml/badge.svg?branch=main">
 
-The typescript implementation of the client for communication with sc-server. This module is compatible with 0.9.0 version of sc-machine.
+The typescript implementation of the client for communication with sc-server. This module is compatible with 0.10.0 version of sc-machine.
 
 # ScClient
 
