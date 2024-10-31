@@ -19,11 +19,11 @@ export interface ScTemplateTriple {
  * Typical usage:
  * ScTemplate templ;
  * templ.triple(addr1,
- *              ScType.EdgeAccessConstPosPerm,
+ *              ScType.ConstPermPosArc,
  *              [addr2, '_x']);
  * templ.triple('_x',
- *              ScType.EdgeAccessConstPosPerm
- *              ScType.NodeConst);
+ *              ScType.ConstPermPosArc
+ *              ScType.ConstNode);
  */
 export class ScTemplate {
   private _triples: ScTemplateTriple[] = [];

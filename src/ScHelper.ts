@@ -27,12 +27,12 @@ export class ScHelper {
 
     template.quintuple(
       addr,
-      ScType.EdgeDCommonVar,
-      [ScType.LinkVar, linkAlias],
-      ScType.EdgeAccessVarPosPerm,
+      ScType.VarCommonArc,
+      [ScType.VarNodeLink, linkAlias],
+      ScType.VarPermPosArc,
       nrelMainIdtf
     );
-    template.triple(foundLang, ScType.EdgeAccessVarPosPerm, linkAlias);
+    template.triple(foundLang, ScType.VarPermPosArc, linkAlias);
     const result = await this._client.searchByTemplate(template);
 
     if (!result.length) {
@@ -61,9 +61,9 @@ export class ScHelper {
 
     template.quintuple(
       addr,
-      ScType.EdgeDCommonVar,
-      [ScType.LinkVar, linkAlias],
-      ScType.EdgeAccessVarPosPerm,
+      ScType.VarCommonArc,
+      [ScType.VarNodeLink, linkAlias],
+      ScType.VarPermPosArc,
       nrelSystemIdentifier
     );
     const result = await this._client.searchByTemplate(template);
@@ -106,7 +106,7 @@ export class ScHelper {
           eventId: number
         ) => {
           const template = new ScTemplate();
-          template.triple(nrelResult, ScType.EdgeAccessVarPosPerm, arc);
+          template.triple(nrelResult, ScType.VarPermPosArc, arc);
           const isNrelResult = (await this._client.searchByTemplate(template))
             .length;
           if (!isNrelResult) return;
@@ -127,9 +127,9 @@ export class ScHelper {
         const template = new ScTemplate();
         template.quintuple(
           actionNode,
-          ScType.EdgeDCommonVar,
-          [ScType.NodeVar, resultAlias],
-          ScType.EdgeAccessVarPosPerm,
+          ScType.VarCommonArc,
+          [ScType.VarNode, resultAlias],
+          ScType.VarPermPosArc,
           nrelResult
         );
         const searchRes = await this._client.searchByTemplate(template);
@@ -155,7 +155,7 @@ export class ScHelper {
   public async generateLink(item: string) {
     const constructionLink = new ScConstruction();
     constructionLink.generateLink(
-      ScType.LinkConst,
+      ScType.ConstNodeLink,
       new ScLinkContent(item, ScLinkContentType.String)
     );
 

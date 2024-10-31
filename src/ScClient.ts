@@ -33,7 +33,7 @@ import {
 } from "./types";
 import { shiftMap, snakeToCamelCase, transformConnectorInfo } from "./utils";
 import { KeynodesToObject } from "./types";
-import { DEFAULT_KEYNODES_CASHE_SIZE } from "./constants";
+import { DEFAULT_KEYNODES_CACHE_SIZE } from "./constants";
 
 export interface Response<T = any> {
   id: number;
@@ -57,11 +57,11 @@ interface KeynodeParam<ParamId extends string = string> {
 type SocketEvent = "close" | "error" | "open";
 
 interface IParams {
-  keynodesCasheSize?: number;
+  keynodesCacheSize?: number;
 }
 
 const defaultParams: IParams = {
-  keynodesCasheSize: DEFAULT_KEYNODES_CASHE_SIZE,
+  keynodesCacheSize: DEFAULT_KEYNODES_CACHE_SIZE,
 };
 
 export class ScClient {
@@ -83,7 +83,7 @@ export class ScClient {
     this._events = {};
     this._eventID = 1;
     this._keynodesCacheSize =
-      params.keynodesCasheSize ?? DEFAULT_KEYNODES_CASHE_SIZE;
+      params.keynodesCacheSize ?? DEFAULT_KEYNODES_CACHE_SIZE;
     this._keynodesCache = new Map<string, ScAddr>();
   }
 
@@ -222,26 +222,26 @@ export class ScClient {
     return new Promise<ScAddr[]>((resolve, reject) => {
       const payload = construction.commands
         .map((cmd) => {
-          if (cmd.type.isNode()) {
-            return {
-              el: "node",
-              type: cmd.type.value,
-            };
-          }
-          if (cmd.type.isEdge()) {
-            return {
-              el: "edge",
-              type: cmd.type.value,
-              src: transformConnectorInfo(construction, cmd.data.src),
-              trg: transformConnectorInfo(construction, cmd.data.trg),
-            };
-          }
           if (cmd.type.isLink()) {
             return {
               el: "link",
               type: cmd.type.value,
               content: cmd.data.content,
               content_type: cmd.data.type,
+            };
+          }
+          else if (cmd.type.isNode()) {
+            return {
+              el: "node",
+              type: cmd.type.value,
+            };
+          }
+          else if (cmd.type.isConnector()) {
+            return {
+              el: "edge",
+              type: cmd.type.value,
+              src: transformConnectorInfo(construction, cmd.data.src),
+              trg: transformConnectorInfo(construction, cmd.data.trg),
             };
           }
 
@@ -614,7 +614,7 @@ export class ScClient {
   ): Promise<KeynodesToObject<K>> {
     const newKeynodes = keynodes
       .filter((keynode) => !this._keynodesCache.get(keynode))
-      .map((keynode) => ({ id: keynode, type: ScType.NodeConst }));
+      .map((keynode) => ({ id: keynode, type: ScType.ConstNode }));
     const cacheKeynodes = keynodes.filter((keynode) =>
       this._keynodesCache.get(keynode)
     );

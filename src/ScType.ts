@@ -1,33 +1,49 @@
 import {
   sc_type_const,
-  sc_type_constancy_mask,
-  sc_type_dedge_common,
-  sc_type_edge_access,
-  sc_type_edge_fuz,
-  sc_type_edge_mask,
-  sc_type_edge_neg,
-  sc_type_edge_perm,
-  sc_type_edge_pos,
-  sc_type_edge_temp,
-  sc_type_element_mask,
-  sc_type_link,
-  sc_type_node,
-  sc_type_node_abstract,
-  sc_type_node_class,
-  sc_type_node_material,
-  sc_type_node_norole,
-  sc_type_node_role,
-  sc_type_node_struct,
-  sc_type_node_tuple,
-  sc_type_uedge_common,
   sc_type_var,
+  sc_type_constancy_mask,
+  sc_type_element_mask,
+  sc_type_connector,
+  sc_type_common_edge,
+  sc_type_arc,
+  sc_type_common_arc,
+  sc_type_membership_arc,
+  sc_type_pos_arc,
+  sc_type_neg_arc,
+  sc_type_fuz_arc,
+  sc_type_perm_arc,
+  sc_type_temp_arc,
+  sc_type_actual_arc,
+  sc_type_inactual_arc,
+  sc_type_node_link,
+  sc_type_node,
+  sc_type_node_class,
+  sc_type_node_superclass,
+  sc_type_node_material,
+  sc_type_node_non_role,
+  sc_type_node_role,
+  sc_type_node_structure,
+  sc_type_node_tuple,
+  sc_type_unknown,
+  sc_type_node_link_mask,
+  sc_type_node_mask,
+  sc_type_connector_mask,
+  sc_type_actuality_mask,
+  sc_type_permanency_mask,
+  sc_type_positivity_mask,
 } from "./constants";
 
 export class ScType {
   private _value: number;
 
-  constructor(value?: number) {
-    this._value = value || 0;
+  constructor(value?: number | ScType) {
+    if (typeof value === 'number') {
+      this._value = value || 0;
+    } else if (value instanceof ScType) {
+      this._value = value._value || 0;
+    } else {
+      this._value = 0;
+    }
   }
 
   public get value(): number {
@@ -38,79 +54,120 @@ export class ScType {
     return (this._value & sc_type_constancy_mask) != 0;
   }
 
-  public hasDirection(): boolean {
-    return (this._value & sc_type_uedge_common) == 0;
-  }
-
-  public isNode(): boolean {
-    return (this._value & sc_type_node) != 0;
-  }
-
-  public isEdge(): boolean {
-    return (this._value & sc_type_edge_mask) != 0;
-  }
-
-  public isLink(): boolean {
-    return (this._value & sc_type_link) != 0;
+  protected hasSubtype(subtype: number): boolean {
+    return (this._value & subtype) == subtype;
   }
 
   public isConst(): boolean {
-    return (this._value & sc_type_const) != 0;
+    return this.hasSubtype(sc_type_const);
   }
 
   public isVar(): boolean {
-    return (this._value & sc_type_var) != 0;
+    return this.hasSubtype(sc_type_var);
+  }
+
+  public hasDirection(): boolean {
+    return this.isArc();
+  }
+
+  public isNode(): boolean {
+    return this.hasSubtype(sc_type_node);
+  }
+
+  public isLink(): boolean {
+    return this.hasSubtype(sc_type_node_link);
+  }
+
+  public isConnector(): boolean {
+    return this.hasSubtype(sc_type_connector);
+  }
+
+  /*!
+   * @deprecated ScType `isEdge` method is deprecated. Use `isConnector` instead.
+   */
+  public isEdge(): boolean {
+    console.warn("Warning: ScType `isEdge` method is deprecated. Use `isConnector` instead.");
+    return this.isConnector();
+  }
+
+  public isCommonEdge(): boolean {
+    return this.hasSubtype(sc_type_common_edge);
+  }
+
+  public isArc(): boolean {
+    return this.hasSubtype(sc_type_arc);
+  }
+
+  public isCommonArc(): boolean {
+    return this.hasSubtype(sc_type_common_arc);
+  }
+
+  public isMembershipArc(): boolean {
+    return this.hasSubtype(sc_type_membership_arc);
   }
 
   public isPos(): boolean {
-    return (this._value & sc_type_edge_pos) != 0;
+    return this.hasSubtype(sc_type_pos_arc);
   }
 
   public isNeg(): boolean {
-    return (this._value & sc_type_edge_neg) != 0;
+    return this.hasSubtype(sc_type_neg_arc);
   }
 
   public isFuz(): boolean {
-    return (this._value & sc_type_edge_fuz) != 0;
+    return this.hasSubtype(sc_type_fuz_arc);
   }
 
   public isPerm(): boolean {
-    return (this._value & sc_type_edge_perm) != 0;
+    return this.hasSubtype(sc_type_perm_arc);
   }
 
   public isTemp(): boolean {
-    return (this._value & sc_type_edge_temp) != 0;
+    return this.hasSubtype(sc_type_temp_arc);
   }
 
-  public isAccess(): boolean {
-    return (this._value & sc_type_edge_access) != 0;
+  public isActual(): boolean {
+    return this.hasSubtype(sc_type_actual_arc);
+  }
+
+  public isInactual(): boolean {
+    return this.hasSubtype(sc_type_inactual_arc);
   }
 
   public isTuple(): boolean {
-    return (this._value & sc_type_node_tuple) != 0;
+    return this.hasSubtype(sc_type_node_tuple);
   }
+  
+  public isStructure(): boolean {
+    return this.hasSubtype(sc_type_node_structure);
+  }
+
+  /*!
+   * @deprecated ScType `isStruct` method is deprecated. Use `isStructure` instead.
+   */
   public isStruct(): boolean {
-    return (this._value & sc_type_node_struct) != 0;
+    console.warn("Warning: ScType `isStruct` method is deprecated. Use `isStructure` instead.");
+    return this.isStructure();
   }
 
   public isRole(): boolean {
-    return (this._value & sc_type_node_role) != 0;
+    return this.hasSubtype(sc_type_node_role);
   }
 
-  public isNoRole(): boolean {
-    return (this._value & sc_type_node_norole) != 0;
+  public isNonRole(): boolean {
+    return this.hasSubtype(sc_type_node_non_role);
   }
 
   public isClass(): boolean {
-    return (this._value & sc_type_node_class) != 0;
+    return this.hasSubtype(sc_type_node_class);
   }
 
-  public isAbstract(): boolean {
-    return (this._value & sc_type_node_abstract) != 0;
+  public isSuperclass(): boolean {
+    return this.hasSubtype(sc_type_node_superclass);
   }
 
   public isMaterial(): boolean {
-    return (this._value & sc_type_node_material) != 0;
+    return this.hasSubtype(sc_type_node_material);
   }
 
   public isValid(): boolean {
@@ -121,12 +178,98 @@ export class ScType {
     return this._value === other._value;
   }
 
-  public merge(other: ScType): ScType {
-    const t1 = this._value & sc_type_element_mask;
-    const t2 = other._value & sc_type_element_mask;
+  protected static isNotCompatibleByMask(type: number, newType: number, mask: number): boolean {
+    const subtype = type & mask;
+    const newSubtype = newType & mask;
+    return subtype != sc_type_unknown && subtype != newSubtype;
+  }
 
-    if (t1 != 0 || t2 != 0) {
-      if (t1 != t2) throw "You can't merge two different syntax type";
+  protected isExtendableTo(newType: ScType): boolean { // it is equal to `sc_storage_is_type_extendable_to` in the sc-machine
+    let thisValue = this.value;
+    let newValue = newType.value;
+
+    if (ScType.isNotCompatibleByMask(thisValue, newValue, sc_type_element_mask)) {
+      return false;
+    }
+    if (ScType.isNotCompatibleByMask(thisValue, newValue, sc_type_constancy_mask)) {
+      return false;
+    }
+
+    if (this.isLink()) {
+      if (!newType.isLink()) {
+        return false;
+      }
+
+      const thisType = new ScType(thisValue & ~sc_type_node_link);
+      newType = new ScType(newValue & ~sc_type_node_link);
+
+      if (ScType.isNotCompatibleByMask(thisValue, newValue, sc_type_node_link_mask)) {
+        return false;
+      }
+    } else if (this.isNode()) {
+      if (!newType.isNode()) {
+        return false;
+      }
+
+      const thisType = new ScType(thisValue & ~sc_type_node);
+      newType = new ScType(newValue & ~sc_type_node);
+
+      if (ScType.isNotCompatibleByMask(thisValue, newValue, sc_type_node_mask)) {
+        return false;
+      } 
+    } else if (this.isConnector()) {
+      if (newType.isConnector()) {
+        return false;
+      }
+
+      if (ScType.isNotCompatibleByMask(thisValue, newValue, sc_type_connector_mask)) {
+        if (this.isCommonEdge()) {
+          if (!newType.isCommonEdge()) {
+            return false;
+          }
+        } else if (this.isArc()) {
+          if (!newType.isArc()) {
+            return false;
+          }
+
+          if (this.isCommonArc()) {
+            if (!newType.isCommonArc()) {
+              return false;
+            }
+          } else if (!this.isMembershipArc()) {
+            if (!newType.isMembershipArc()) {
+              return false;
+            }
+          }
+        }
+      }
+
+      const thisType = new ScType(thisValue & ~sc_type_connector_mask);
+      newType = new ScType(newValue & ~sc_type_connector_mask);
+
+      if (ScType.isNotCompatibleByMask(thisValue, newValue, sc_type_actuality_mask)) {
+        return false;
+      }
+
+      if (ScType.isNotCompatibleByMask(thisValue, newValue, sc_type_permanency_mask)) {
+        return false;
+      }
+
+      if (ScType.isNotCompatibleByMask(thisValue, newValue, sc_type_positivity_mask)) {
+        return false;
+      }
+
+      if (ScType.isNotCompatibleByMask(thisValue, newValue, sc_type_fuz_arc)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public merge(other: ScType): ScType {
+    if (!this.isExtendableTo(other)) {
+      throw "Type `" + this + "` can not be extended to `" + other + "`";
     }
 
     return new ScType(this._value | other._value);
@@ -137,127 +280,328 @@ export class ScType {
     return new ScType(v | (isConst ? sc_type_const : sc_type_var));
   }
 
-  static readonly EdgeUCommon = new ScType(sc_type_uedge_common);
-  static readonly EdgeDCommon = new ScType(sc_type_dedge_common);
+  static readonly Unknown = new ScType(sc_type_unknown);
 
-  static readonly EdgeUCommonConst = new ScType(
-    sc_type_uedge_common | sc_type_const
-  );
-  static readonly EdgeDCommonConst = new ScType(
-    sc_type_dedge_common | sc_type_const
-  );
-  static readonly EdgeUCommonVar = new ScType(
-    sc_type_uedge_common | sc_type_var
-  );
-  static readonly EdgeDCommonVar = new ScType(
-    sc_type_dedge_common | sc_type_var
-  );
+  // sc-elements
+  static readonly Node = new ScType(sc_type_node);
+  static readonly Connector = new ScType(sc_type_connector);
+  static readonly CommonEdge = new ScType(sc_type_common_edge);
+  static readonly Arc = new ScType(sc_type_arc);
+  static readonly CommonArc = new ScType(sc_type_common_arc);
+  static readonly MembershipArc = new ScType(sc_type_membership_arc);
 
-  static readonly EdgeAccess = new ScType(sc_type_edge_access);
-  static readonly EdgeAccessConstPosPerm = new ScType(
-    sc_type_const | sc_type_edge_access | sc_type_edge_perm | sc_type_edge_pos
-  );
-  static readonly EdgeAccessConstNegPerm = new ScType(
-    sc_type_const | sc_type_edge_access | sc_type_edge_perm | sc_type_edge_neg
-  );
-  static readonly EdgeAccessConstFuzPerm = new ScType(
-    sc_type_const | sc_type_edge_access | sc_type_edge_perm | sc_type_edge_fuz
-  );
-  static readonly EdgeAccessConstPosTemp = new ScType(
-    sc_type_const | sc_type_edge_access | sc_type_edge_temp | sc_type_edge_pos
-  );
-  static readonly EdgeAccessConstNegTemp = new ScType(
-    sc_type_const | sc_type_edge_access | sc_type_edge_temp | sc_type_edge_neg
-  );
-  static readonly EdgeAccessConstFuzTemp = new ScType(
-    sc_type_const | sc_type_edge_access | sc_type_edge_temp | sc_type_edge_fuz
-  );
-
-  static readonly EdgeAccessVarPosPerm = new ScType(
-    sc_type_var | sc_type_edge_access | sc_type_edge_perm | sc_type_edge_pos
-  );
-  static readonly EdgeAccessVarNegPerm = new ScType(
-    sc_type_var | sc_type_edge_access | sc_type_edge_perm | sc_type_edge_neg
-  );
-  static readonly EdgeAccessVarFuzPerm = new ScType(
-    sc_type_var | sc_type_edge_access | sc_type_edge_perm | sc_type_edge_fuz
-  );
-  static readonly EdgeAccessVarPosTemp = new ScType(
-    sc_type_var | sc_type_edge_access | sc_type_edge_temp | sc_type_edge_pos
-  );
-  static readonly EdgeAccessVarNegTemp = new ScType(
-    sc_type_var | sc_type_edge_access | sc_type_edge_temp | sc_type_edge_neg
-  );
-  static readonly EdgeAccessVarFuzTemp = new ScType(
-    sc_type_var | sc_type_edge_access | sc_type_edge_temp | sc_type_edge_fuz
-  );
-
+  // constancy
   static readonly Const = new ScType(sc_type_const);
   static readonly Var = new ScType(sc_type_var);
 
-  static readonly Node = new ScType(sc_type_node);
-  static readonly Link = new ScType(sc_type_link);
-  static readonly Unknown = new ScType();
+  static readonly ConstNode = new ScType(sc_type_const | sc_type_node);
+  static readonly VarNode = new ScType(sc_type_var | sc_type_node);
+  static readonly ConstConnector = new ScType(sc_type_const | sc_type_connector);
+  static readonly VarConnector = new ScType(sc_type_var | sc_type_connector);
+  static readonly ConstCommonEdge = new ScType(sc_type_const | sc_type_common_edge);
+  static readonly VarCommonEdge = new ScType(sc_type_var | sc_type_common_edge);
+  static readonly ConstArc = new ScType(sc_type_const | sc_type_arc);
+  static readonly VarArc = new ScType(sc_type_var | sc_type_arc);
+  static readonly ConstCommonArc = new ScType(sc_type_const | sc_type_common_arc);
+  static readonly VarCommonArc = new ScType(sc_type_var | sc_type_common_arc);
+  static readonly ConstMembershipArc = new ScType(sc_type_const | sc_type_membership_arc);
+  static readonly VarMembershipArc = new ScType(sc_type_var | sc_type_membership_arc);
 
-  static readonly NodeConst = new ScType(sc_type_node | sc_type_const);
-  static readonly NodeVar = new ScType(sc_type_node | sc_type_var);
+  // permanency
+  static readonly PermArc = new ScType(sc_type_perm_arc);
+  static readonly TempArc = new ScType(sc_type_temp_arc);
 
-  static readonly LinkConst = new ScType(sc_type_link | sc_type_const);
-  static readonly LinkVar = new ScType(sc_type_link | sc_type_var);
+  static readonly ConstPermArc = new ScType(sc_type_const | sc_type_perm_arc);
+  static readonly VarPermArc = new ScType(sc_type_var | sc_type_perm_arc);
+  static readonly ConstTempArc = new ScType(sc_type_const | sc_type_temp_arc);
+  static readonly VarTempArc = new ScType(sc_type_var | sc_type_temp_arc);
 
-  static readonly NodeStruct = new ScType(sc_type_node | sc_type_node_struct);
-  static readonly NodeTuple = new ScType(sc_type_node | sc_type_node_tuple);
-  static readonly NodeRole = new ScType(sc_type_node | sc_type_node_role);
-  static readonly NodeNoRole = new ScType(sc_type_node | sc_type_node_norole);
-  static readonly NodeClass = new ScType(sc_type_node | sc_type_node_class);
-  static readonly NodeAbstract = new ScType(
-    sc_type_node | sc_type_node_abstract
-  );
-  static readonly NodeMaterial = new ScType(
-    sc_type_node | sc_type_node_material
-  );
+  // actuality
+  static readonly ActualTempArc = new ScType(sc_type_actual_arc | sc_type_temp_arc);
+  static readonly InactualTempArc = new ScType(sc_type_inactual_arc | sc_type_temp_arc);
 
-  static readonly NodeConstStruct = new ScType(
-    sc_type_node | sc_type_const | sc_type_node_struct
-  );
-  static readonly NodeConstTuple = new ScType(
-    sc_type_node | sc_type_const | sc_type_node_tuple
-  );
-  static readonly NodeConstRole = new ScType(
-    sc_type_node | sc_type_const | sc_type_node_role
-  );
-  static readonly NodeConstNoRole = new ScType(
-    sc_type_node | sc_type_const | sc_type_node_norole
-  );
-  static readonly NodeConstClass = new ScType(
-    sc_type_node | sc_type_const | sc_type_node_class
-  );
-  static readonly NodeConstAbstract = new ScType(
-    sc_type_node | sc_type_const | sc_type_node_abstract
-  );
-  static readonly NodeConstMaterial = new ScType(
-    sc_type_node | sc_type_const | sc_type_node_material
-  );
+  static readonly ConstActualTempArc = new ScType(sc_type_const | sc_type_actual_arc | sc_type_temp_arc);
+  static readonly VarActualTempArc = new ScType(sc_type_var | sc_type_actual_arc | sc_type_temp_arc);
+  static readonly ConstInactualTempArc = new ScType(sc_type_const | sc_type_inactual_arc | sc_type_temp_arc);
+  static readonly VarInactualTempArc = new ScType(sc_type_var | sc_type_inactual_arc | sc_type_temp_arc);
 
-  static readonly NodeVarStruct = new ScType(
-    sc_type_node | sc_type_var | sc_type_node_struct
-  );
-  static readonly NodeVarTuple = new ScType(
-    sc_type_node | sc_type_var | sc_type_node_tuple
-  );
-  static readonly NodeVarRole = new ScType(
-    sc_type_node | sc_type_var | sc_type_node_role
-  );
-  static readonly NodeVarNoRole = new ScType(
-    sc_type_node | sc_type_var | sc_type_node_norole
-  );
-  static readonly NodeVarClass = new ScType(
-    sc_type_node | sc_type_var | sc_type_node_class
-  );
-  static readonly NodeVarAbstract = new ScType(
-    sc_type_node | sc_type_var | sc_type_node_abstract
-  );
-  static readonly NodeVarMaterial = new ScType(
-    sc_type_node | sc_type_var | sc_type_node_material
-  );
+  // positivity
+  static readonly PosArc = new ScType(sc_type_pos_arc);
+  static readonly NegArc = new ScType(sc_type_neg_arc);
+
+  // positive sc-arcs
+  static readonly ConstPosArc = new ScType(sc_type_const | sc_type_pos_arc);
+  static readonly VarPosArc = new ScType(sc_type_var | sc_type_pos_arc);
+
+  static readonly PermPosArc = new ScType(sc_type_perm_arc | sc_type_pos_arc);
+  static readonly TempPosArc = new ScType(sc_type_temp_arc | sc_type_pos_arc);
+  static readonly ActualTempPosArc = new ScType(sc_type_actual_arc | sc_type_temp_arc | sc_type_pos_arc);
+  static readonly InactualTempPosArc = new ScType(sc_type_inactual_arc | sc_type_temp_arc | sc_type_pos_arc);
+
+  static readonly ConstPermPosArc = new ScType(sc_type_const | sc_type_perm_arc | sc_type_pos_arc);
+  static readonly ConstTempPosArc = new ScType(sc_type_const | sc_type_temp_arc | sc_type_pos_arc);
+  static readonly ConstActualTempPosArc = new ScType(sc_type_const | sc_type_actual_arc | sc_type_temp_arc | sc_type_pos_arc);
+  static readonly ConstInactualTempPosArc = new ScType(sc_type_const | sc_type_inactual_arc | sc_type_temp_arc | sc_type_pos_arc);
+
+  static readonly VarPermPosArc = new ScType(sc_type_var | sc_type_perm_arc | sc_type_pos_arc);
+  static readonly VarTempPosArc = new ScType(sc_type_var | sc_type_temp_arc | sc_type_pos_arc);
+  static readonly VarActualTempPosArc = new ScType(sc_type_var | sc_type_actual_arc | sc_type_temp_arc | sc_type_pos_arc);
+  static readonly VarInactualTempPosArc = new ScType(sc_type_var | sc_type_inactual_arc | sc_type_temp_arc | sc_type_pos_arc);
+
+  // negative sc-arcs
+  static readonly ConstNegArc = new ScType(sc_type_const | sc_type_neg_arc);
+  static readonly VarNegArc = new ScType(sc_type_var | sc_type_neg_arc);
+
+  static readonly PermNegArc = new ScType(sc_type_perm_arc | sc_type_neg_arc);
+  static readonly TempNegArc = new ScType(sc_type_temp_arc | sc_type_neg_arc);
+  static readonly ActualTempNegArc = new ScType(sc_type_actual_arc | sc_type_temp_arc | sc_type_neg_arc);
+  static readonly InactualTempNegArc = new ScType(sc_type_inactual_arc | sc_type_temp_arc | sc_type_neg_arc);
+
+  static readonly ConstPermNegArc = new ScType(sc_type_const | sc_type_perm_arc | sc_type_neg_arc);
+  static readonly ConstTempNegArc = new ScType(sc_type_const | sc_type_temp_arc | sc_type_neg_arc);
+  static readonly ConstActualTempNegArc = new ScType(sc_type_const | sc_type_actual_arc | sc_type_temp_arc | sc_type_neg_arc);
+  static readonly ConstInactualTempNegArc = new ScType(sc_type_const | sc_type_inactual_arc | sc_type_temp_arc | sc_type_neg_arc);
+
+  static readonly VarPermNegArc = new ScType(sc_type_var | sc_type_perm_arc | sc_type_neg_arc);
+  static readonly VarTempNegArc = new ScType(sc_type_var | sc_type_temp_arc | sc_type_neg_arc);
+  static readonly VarActualTempNegArc = new ScType(sc_type_var | sc_type_actual_arc | sc_type_temp_arc | sc_type_neg_arc);
+  static readonly VarInactualTempNegArc = new ScType(sc_type_var | sc_type_inactual_arc | sc_type_temp_arc | sc_type_neg_arc);
+
+  // fuzzy sc-arcs
+  static readonly FuzArc = new ScType(sc_type_fuz_arc);
+
+  static readonly ConstFuzArc = new ScType(sc_type_const | sc_type_fuz_arc);
+  static readonly VarFuzArc = new ScType(sc_type_var | sc_type_fuz_arc);
+
+  // semantic sc-node types
+  static readonly NodeLink = new ScType(sc_type_node_link);
+  static readonly NodeLinkClass = new ScType(sc_type_node_link | sc_type_node_class);
+  static readonly NodeTuple = new ScType(sc_type_node_tuple);
+  static readonly NodeStructure = new ScType(sc_type_node_structure);
+  static readonly NodeRole = new ScType(sc_type_node_role);
+  static readonly NodeNonRole = new ScType(sc_type_node_non_role);
+  static readonly NodeClass = new ScType(sc_type_node_class);
+  static readonly NodeSuperclass = new ScType(sc_type_node_superclass);
+  static readonly NodeMaterial = new ScType(sc_type_node_material);
+
+  static readonly ConstNodeLink = new ScType(sc_type_const | sc_type_node_link);
+  static readonly ConstNodeLinkClass = new ScType(sc_type_const | sc_type_node_link | sc_type_node_class);
+  static readonly ConstNodeTuple = new ScType(sc_type_const | sc_type_node_tuple);
+  static readonly ConstNodeStructure = new ScType(sc_type_const | sc_type_node_structure);
+  static readonly ConstNodeRole = new ScType(sc_type_const | sc_type_node_role);
+  static readonly ConstNodeNonRole = new ScType(sc_type_const | sc_type_node_non_role);
+  static readonly ConstNodeClass = new ScType(sc_type_const | sc_type_node_class);
+  static readonly ConstNodeSuperclass = new ScType(sc_type_const | sc_type_node_superclass);
+  static readonly ConstNodeMaterial = new ScType(sc_type_const | sc_type_node_material);
+
+  static readonly VarNodeLink = new ScType(sc_type_var | sc_type_node_link);
+  static readonly VarNodeLinkClass = new ScType(sc_type_var | sc_type_node_link | sc_type_node_class);
+  static readonly VarNodeTuple = new ScType(sc_type_var | sc_type_node_tuple);
+  static readonly VarNodeStructure = new ScType(sc_type_var | sc_type_node_structure);
+  static readonly VarNodeRole = new ScType(sc_type_var | sc_type_node_role);
+  static readonly VarNodeNonRole = new ScType(sc_type_var | sc_type_node_non_role);
+  static readonly VarNodeClass = new ScType(sc_type_var | sc_type_node_class);
+  static readonly VarNodeSuperclass = new ScType(sc_type_var | sc_type_node_superclass);
+  static readonly VarNodeMaterial = new ScType(sc_type_var | sc_type_node_material);
+
+  // deprecated
+  /*!
+   * @deprecated EdgeUCommon is deprecated. Use CommonEdge instead.
+   */
+  static readonly EdgeUCommon = new ScType(ScType.CommonEdge);
+
+  /*!
+   * @deprecated EdgeDCommon is deprecated. Use CommonArc instead.
+   */
+  static readonly EdgeDCommon = new ScType(ScType.CommonArc);
+
+  /*!
+   * @deprecated EdgeUCommonConst is deprecated. Use ConstCommonEdge instead.
+   */
+  static readonly EdgeUCommonConst = new ScType(ScType.ConstCommonEdge);
+
+  /*!
+   * @deprecated EdgeDCommonConst is deprecated. Use ConstCommonArc instead.
+   */
+  static readonly EdgeDCommonConst = new ScType(ScType.ConstCommonArc);
+
+  /*!
+  * @deprecated EdgeAccess is deprecated. Use MembershipArc instead.
+  */
+  static readonly EdgeAccess = new ScType(ScType.MembershipArc);
+
+  /*!
+  * @deprecated EdgeAccessConstPosPerm is deprecated. Use ConstPermPosArc instead.
+  */
+  static readonly EdgeAccessConstPosPerm = new ScType(ScType.ConstPermPosArc);
+
+  /*!
+  * @deprecated EdgeAccessConstNegPerm is deprecated. Use ConstPermNegArc instead.
+  */
+  static readonly EdgeAccessConstNegPerm = new ScType(ScType.ConstPermNegArc);
+
+  /*!
+  * @deprecated EdgeAccessConstFuzPerm is deprecated. Use ConstFuzArc instead.
+  */
+  static readonly EdgeAccessConstFuzPerm = new ScType(ScType.ConstFuzArc);
+
+  /*!
+  * @deprecated EdgeAccessConstPosTemp is deprecated. Use ConstTempPosArc instead.
+  */
+  static readonly EdgeAccessConstPosTemp = new ScType(ScType.ConstTempPosArc);
+
+  /*!
+  * @deprecated EdgeAccessConstNegTemp is deprecated. Use ConstTempNegArc instead.
+  */
+  static readonly EdgeAccessConstNegTemp = new ScType(ScType.ConstTempNegArc);
+
+  /*!
+  * @deprecated EdgeAccessConstFuzTemp is deprecated. Use ConstFuzArc instead.
+  */
+  static readonly EdgeAccessConstFuzTemp = new ScType(ScType.ConstFuzArc);
+
+  /*!
+  * @deprecated EdgeUCommonVar is deprecated. Use VarCommonEdge instead.
+  */
+  static readonly EdgeUCommonVar = new ScType(ScType.VarCommonEdge);
+
+  /*!
+  * @deprecated EdgeDCommonVar is deprecated. Use VarCommonArc instead.
+  */
+  static readonly EdgeDCommonVar = new ScType(ScType.VarCommonArc);
+
+  /*!
+  * @deprecated EdgeAccessVarPosPerm is deprecated. Use VarPermPosArc instead.
+  */
+  static readonly EdgeAccessVarPosPerm = new ScType(ScType.VarPermPosArc);
+
+  /*!
+  * @deprecated EdgeAccessVarNegPerm is deprecated. Use VarPermNegArc instead.
+  */
+  static readonly EdgeAccessVarNegPerm = new ScType(ScType.VarPermNegArc);
+
+  /*!
+  * @deprecated EdgeAccessVarFuzPerm is deprecated. Use VarFuzArc instead.
+  */
+  static readonly EdgeAccessVarFuzPerm = new ScType(ScType.VarFuzArc);
+
+  /*!
+  * @deprecated EdgeAccessVarPosTemp is deprecated. Use VarTempPosArc instead.
+  */
+  static readonly EdgeAccessVarPosTemp = new ScType(ScType.VarTempPosArc);
+
+  /*!
+  * @deprecated EdgeAccessVarNegTemp is deprecated. Use VarTempNegArc instead.
+  */
+  static readonly EdgeAccessVarNegTemp = new ScType(ScType.VarTempNegArc);
+
+  /*!
+  * @deprecated EdgeAccessVarFuzTemp is deprecated. Use VarFuzArc instead.
+  */
+  static readonly EdgeAccessVarFuzTemp = new ScType(ScType.VarFuzArc);
+
+  /*!
+  * @deprecated NodeConst is deprecated. Use ConstNode instead.
+  */
+  static readonly NodeConst = new ScType(ScType.ConstNode);
+
+  /*!
+  * @deprecated NodeVar is deprecated. Use VarNode instead.
+  */
+  static readonly NodeVar = new ScType(ScType.VarNode);
+
+  /*!
+  * @deprecated Link is deprecated. Use NodeLink instead.
+  */
+  static readonly Link = new ScType(ScType.NodeLink);
+
+  /*!
+  * @deprecated LinkClass is deprecated. Use NodeLinkClass instead.
+  */
+  static readonly LinkClass = new ScType(ScType.NodeLinkClass);
+
+  /*!
+  * @deprecated NodeStruct is deprecated. Use NodeStructure instead.
+  */
+  static readonly NodeStruct = new ScType(ScType.NodeStructure);
+
+  /*!
+  * @deprecated LinkConst is deprecated. Use ConstNodeLink instead.
+  */
+  static readonly LinkConst = new ScType(ScType.ConstNodeLink);
+
+  /*!
+  * @deprecated LinkConstClass is deprecated. Use ConstNodeLinkClass instead.
+  */
+  static readonly LinkConstClass = new ScType(ScType.ConstNodeLinkClass);
+
+  /*!
+  * @deprecated NodeConstTuple is deprecated. Use ConstNodeTuple instead.
+  */
+  static readonly NodeConstTuple = new ScType(ScType.ConstNodeTuple);
+
+  /*!
+  * @deprecated NodeConstStruct is deprecated. Use ConstNodeStructure instead.
+  */
+  static readonly NodeConstStruct = new ScType(ScType.ConstNodeStructure);
+
+  /*!
+  * @deprecated NodeConstRole is deprecated. Use ConstNodeRole instead.
+  */
+  static readonly NodeConstRole = new ScType(ScType.ConstNodeRole);
+
+  /*!
+  * @deprecated NodeConstNoRole is deprecated. Use ConstNodeNonRole instead.
+  */
+  static readonly NodeConstNoRole = new ScType(ScType.ConstNodeNonRole);
+
+  /*!
+  * @deprecated NodeConstClass is deprecated. Use ConstNodeClass instead.
+  */
+  static readonly NodeConstClass = new ScType(ScType.ConstNodeClass);
+
+  /*!
+  * @deprecated NodeConstMaterial is deprecated. Use ConstNodeMaterial instead.
+  */
+  static readonly NodeConstMaterial = new ScType(ScType.ConstNodeMaterial);
+
+  /*!
+  * @deprecated LinkVar is deprecated. Use VarNodeLink instead.
+  */
+  static readonly LinkVar = new ScType(ScType.VarNodeLink);
+
+  /*!
+  * @deprecated LinkVarClass is deprecated. Use VarNodeLinkClass instead.
+  */
+  static readonly LinkVarClass = new ScType(ScType.VarNodeLinkClass);
+
+  /*!
+  * @deprecated NodeVarStruct is deprecated. Use VarNodeStructure instead.
+  */
+  static readonly NodeVarStruct = new ScType(ScType.VarNodeStructure);
+
+  /*!
+  * @deprecated NodeVarTuple is deprecated. Use VarNodeTuple instead.
+  */
+  static readonly NodeVarTuple = new ScType(ScType.VarNodeTuple);
+
+  /*!
+  * @deprecated NodeVarRole is deprecated. Use VarNodeRole instead.
+  */
+  static readonly NodeVarRole = new ScType(ScType.VarNodeRole);
+
+  /*!
+  * @deprecated NodeVarNoRole is deprecated. Use VarNodeNonRole instead.
+  */
+  static readonly NodeVarNoRole = new ScType(ScType.VarNodeNonRole);
+
+  /*!
+  * @deprecated NodeVarClass is deprecated. Use VarNodeClass instead.
+  */
+  static readonly NodeVarClass = new ScType(ScType.VarNodeClass);
+
+  /*!
+  * @deprecated NodeVarMaterial is deprecated. Use VarNodeMaterial instead.
+  */
+  static readonly NodeVarMaterial = new ScType(ScType.VarNodeMaterial);
 }

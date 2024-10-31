@@ -39,7 +39,7 @@ export class ScConstruction {
     target: string | ScAddr,
     alias?: string
   ) {
-    if (!type.isEdge()) {
+    if (!type.isConnector()) {
       invalidValue("You should pass connector type there");
     }
     const cmd = new ScConstructionCommand(type, {

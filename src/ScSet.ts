@@ -168,7 +168,7 @@ export class ScSet {
     const templ: ScTemplate = new ScTemplate();
     templ.triple(
       this._addr,
-      [ScType.EdgeAccessVarPosPerm, "_edge"],
+      [ScType.VarPermPosArc, "_arc"],
       [ScType.Unknown, "_item"]
     );
 
@@ -183,7 +183,7 @@ export class ScSet {
         continue;
       }
 
-      const edge: ScAddr = searchRes[i].get("_edge");
+      const edge: ScAddr = searchRes[i].get("_arc");
       const trg: ScAddr = searchRes[i].get("_item");
 
       if (this._elements[edge.value]) {
@@ -213,7 +213,7 @@ export class ScSet {
     const templ: ScTemplate = new ScTemplate();
     templ.triple(
       this._addr,
-      [ScType.EdgeAccessVarPosPerm, "_edge"],
+      [ScType.VarPermPosArc, "_arc"],
       [el, "_item"]
     );
 
