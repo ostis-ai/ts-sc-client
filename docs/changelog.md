@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Deprecated method                      | Substitution method                       | 
 |----------------------------------------|-------------------------------------------|
-| checkElements                          | getElementsTypes                           |
+| checkElements                          | getElementsTypes                          |
 | createElements                         | generateElements                          |
 | createNode                             | generateNode                              |
 | createLink                             | generateLink                              |
@@ -42,8 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - All sc-types were redesigned to a common style. They were deprecated, new ones were added. See changes in the table below.
   
-  | Deprecated                    | Substitution               |
-  |-------------------------------|----------------------------|
+  | Deprecated                    | Substitution              |
+  |-------------------------------|---------------------------|
   | ScType.EdgeUCommon            | ScType.CommonEdge         |
   | ScType.EdgeDCommon            | ScType.CommonArc          |
   | ScType.EdgeUCommonConst       | ScType.ConstCommonEdge    |
